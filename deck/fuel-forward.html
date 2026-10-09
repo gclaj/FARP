@@ -631,7 +631,7 @@ function Engine(){
       CH47.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:mat;o.castShadow=true}});
       CH47.proto=CH47.glb;CH47.waiting.forEach(f=>f());CH47.waiting=[]};
     for(const k in want)tl.load(want[k],t=>{if(k==='map')t.encoding=THREE.sRGBEncoding;T[k]=t;n++;ready()});
-    if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/ch47.glb',g=>{CH47.glb=g.scene;ready()},undefined,e=>console.error(e));})();
+    if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/ch47.json',g=>{CH47.glb=g.scene;ready()},undefined,e=>console.error(e));})();
   const A={ch:[makeModel('ch47',46),makeModel('ch47',46)],uh:[makeIcon('uh60',52)],fat:[makeModel('ch47',46,true),makeModel('ch47',46,true)],ah:[makeIcon('ah64',50),makeIcon('ah64',50)]};
   const allAC=[...A.ch,...A.uh,...A.fat,...A.ah];allAC.forEach(a=>scene.add(a));
   const SCALE={wide:5.5,obj:1};
