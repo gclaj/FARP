@@ -431,7 +431,7 @@ p strong{color:var(--fg);font-weight:600}
     <div class="panel a" style="--d:1s;flex:1"><div class="tag">Sources</div>
       <p class="small" style="margin-top:12px;font-size:14.5px">Doctrinal framing draws on FM 3-04 <em>Army Aviation</em>, ATP 3-04.17 <em>Techniques for Forward Arming and Refueling Points</em>, and FM 3-99 <em>Airborne and Air Assault Operations</em>.</p>
       <p class="small" style="margin-top:10px;font-size:14.5px">Distances, task organization, lifts, phasing, timeline, deliverables, aerial imagery and apron photographs are from the Dog Company J-FARP Seizure CONOP and the Operation Storm Surge AMCM / AMB deck of 06 OCT 26.</p>
-      <p class="small" style="margin-top:10px;font-size:14.5px">The CH-47 and AH-64 are the supplied models and texture sets. The UH-60 remains an icon. The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Chalk-to-zone and objective assignments follow the Ground Task Force slide; observation post and mortar positions are illustrative.</p></div>
+      <p class="small" style="margin-top:10px;font-size:14.5px">The CH-47, UH-60 and AH-64 are the supplied models and texture sets. The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Chalk-to-zone and objective assignments follow the Ground Task Force slide; observation post and mortar positions are illustrative.</p></div>
   </div>
   <div class="foot"><span>Dog Company · 2-506 IN · 6-101 CAB</span><span>17 · end</span></div>
 </section>
@@ -614,21 +614,26 @@ function Engine(){
   function lamp(color,x,y,z,s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false}));sp.scale.set(s,s,1);sp.position.set(x,y,z);return sp}
   /* ===== supplied aircraft models with their PBR texture sets ===== */
   const MODELS={ch47:{url:'assets/ch47.json',tex:{map:'assets/ch47_albedo.jpg',normalMap:'assets/ch47_normal.jpg',orm:'assets/ch47_orm.jpg'},real:30.1,emis:0x1c2214,proto:null,waiting:[]},
-                ah64:{url:'assets/ah64.json',tex:{map:'assets/ah64_albedo.jpg',normalMap:'assets/ah64_normal.jpg',orm:'assets/ah64_orm.jpg'},real:17.7,emis:0x141618,proto:null,waiting:[]}};
+                ah64:{url:'assets/ah64.json',tex:{map:'assets/ah64_albedo.jpg',normalMap:'assets/ah64_normal.jpg',orm:'assets/ah64_orm.jpg'},real:17.7,emis:0x141618,proto:null,waiting:[]},
+                uh60:{url:'assets/uh60.json',mats:Object.fromEntries(['metal1','dvigat_kil','koleso','zelen','black1','fuzel','koleso2','gor_stab','panel'].map(k=>[k,'assets/uh60_'+k+'.jpg'])),real:17.5,emis:0x161a12,proto:null,waiting:[]}};
   function makeModel(kind,len,fuel){const M=MODELS[kind];const g=new THREE.Group();g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;g.lift=0;g.rotors=[];g.fuel=!!fuel;
     const shadow=new THREE.Mesh(new THREE.PlaneGeometry(len*1.1,len*.5),new THREE.MeshBasicMaterial({map:GLOW,transparent:true,opacity:.45,depthWrite:false,color:0x000000}));shadow.rotation.order='YXZ';shadow.rotation.x=-Math.PI/2;scene.add(shadow);shadow.visible=false;g.shadow=shadow;
     g.nav=[lamp(0xff3b3b,-len*.05,len*.1,-len*.075,len*.07),lamp(0x37ff6a,-len*.05,len*.1,len*.075,len*.07),lamp(0xffffff,-len*.52,len*.1,0,len*.05)];g.nav.forEach(l=>g.add(l));
     if(fuel){const b=lamp(0xffb040,-len*.3,len*.26,0,len*.1);g.add(b);g.beacon=b}
-    const attach=()=>{const m=M.proto.clone(true);const sc=len/M.real;m.scale.setScalar(sc);g.add(m);g.rotors=[];m.traverse(o=>{if(o.isMesh&&o.name.startsWith('rotor')){const axis=o.name.startsWith('rotorX')?'x':'y';const tail=o.name.includes('tail');const r=tail?2.2:(kind==='ch47'?9.2:7.3);const disc=new THREE.Mesh(new THREE.CircleGeometry(r,48),new THREE.MeshBasicMaterial({color:0x9aa0aa,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));if(axis==='y')disc.rotation.x=-Math.PI/2;else disc.rotation.y=Math.PI/2;o.add(disc);g.rotors.push({blades:o,disc,axis,dir:o.name==='rotorA'?-1:1,rate:tail?2.5:1})}})};
+    const attach=()=>{const m=M.proto.clone(true);const sc=len/M.real;m.scale.setScalar(sc);g.add(m);g.rotors=[];m.traverse(o=>{if(o.isMesh&&o.name.startsWith('rotor')){const axis=o.name.startsWith('rotorX')?'x':'y';const tail=o.name.includes('tail');const r=tail?(kind==='uh60'?1.7:2.2):(kind==='ch47'?9.2:kind==='uh60'?6.1:7.3);const disc=new THREE.Mesh(new THREE.CircleGeometry(r,48),new THREE.MeshBasicMaterial({color:0x9aa0aa,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));if(axis==='y')disc.rotation.x=-Math.PI/2;else disc.rotation.y=Math.PI/2;o.add(disc);g.rotors.push({blades:o,disc,axis,dir:o.name==='rotorA'?-1:1,rate:tail?2.5:1})}})};
     if(M.proto)attach();else M.waiting.push(attach);return g}
-  Object.keys(MODELS).forEach(kind=>{const M=MODELS[kind];const tl=new THREE.TextureLoader();const T={};let n=0;
-    const ready=()=>{if(n<3||!M.glb)return;const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.5});
+  Object.keys(MODELS).forEach(kind=>{const M=MODELS[kind];const tl=new THREE.TextureLoader();const T={};let n=0;const want=M.mats||M.tex;const need=Object.keys(want).length;
+    const ready=()=>{if(n<need||!M.glb)return;
+      if(M.mats){const cache={};const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.6});
+        M.glb.traverse(o=>{if(o.isMesh){const key=o.name.split('|')[1];o.material=key==='glass'?glass:(cache[key]=cache[key]||new THREE.MeshStandardMaterial({map:T[key],roughness:.7,metalness:.15,emissive:M.emis,emissiveIntensity:.5}));o.castShadow=true}});
+        M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[];return}
+      const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.5});
       const dark=new THREE.MeshStandardMaterial({color:0x101216,roughness:.4,metalness:.2});const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.75});
       M.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:o.name==='glass'?glass:mat;o.castShadow=true}});
       M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[]};
-    for(const k in M.tex)tl.load(M.tex[k],t=>{if(k==='map')t.encoding=THREE.sRGBEncoding;T[k]=t;n++;ready()});
+    for(const k in want)tl.load(want[k],t=>{if(k==='map'||M.mats)t.encoding=THREE.sRGBEncoding;T[k]=t;n++;ready()});
     if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load(M.url,g=>{M.glb=g.scene;ready()},undefined,e=>console.error(e));});
-  const A={ch:[makeModel('ch47',46),makeModel('ch47',46)],uh:[makeIcon('uh60',52)],fat:[makeModel('ch47',46,true),makeModel('ch47',46,true)],ah:[makeModel('ah64',27),makeModel('ah64',27)]};
+  const A={ch:[makeModel('ch47',46),makeModel('ch47',46)],uh:[makeModel('uh60',27)],fat:[makeModel('ch47',46,true),makeModel('ch47',46,true)],ah:[makeModel('ah64',27),makeModel('ah64',27)]};
   const allAC=[...A.ch,...A.uh,...A.fat,...A.ah];allAC.forEach(a=>scene.add(a));
   const SCALE={wide:5.5,obj:1};
   /* ===== dismounted troops: the GTF slide's soldier silhouette ===== */
