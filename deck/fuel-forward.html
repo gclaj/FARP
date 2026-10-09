@@ -1,10 +1,11 @@
 <title>Fuel Forward</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-/* Layout: a fixed 1600×900 stage scaled to the viewport, one slide at a time, transport controls in a slim bar beneath. Night-flight palette: indigo ground, moonlit type, amber for fuel, sky for aviation. */
+/* Layout: a full-bleed WebGL night battlespace behind a fixed 1600×900 overlay stage scaled to the viewport; transport bar beneath. Palette: indigo night, moonlit type, amber for fuel, sky for aviation. Committed single dark theme. */
 :root{
-  --bg:#0a0e1c; --bg2:#10162c; --panel:#161d38; --panel2:#1d2547;
-  --fg:#eef0f8; --mute:#9aa3c4; --dim:#5d6688; --line:rgba(238,240,248,.14);
+  --bg:#070b16; --glass:rgba(10,14,28,.62); --glass2:rgba(14,20,40,.78);
+  --fg:#eef0f8; --mute:#aab2cf; --dim:#6b7498; --line:rgba(238,240,248,.16);
   --amber:#f4b94a; --amber2:#ffd98a; --sky:#79d4ff; --sky2:#bfe9ff; --rose:#ff7384; --mint:#8be3b0;
   --display:'Fraunces',Georgia,'Times New Roman',serif;
   --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -14,107 +15,70 @@
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden;-webkit-font-smoothing:antialiased}
 *{box-sizing:border-box}
-#wrap{position:fixed;left:0;right:0;top:0;bottom:calc(58px + env(safe-area-inset-bottom,0px));overflow:hidden}
+#gl{position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:0}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(5,8,18,.75) 100%)}
+#wrap{position:fixed;left:0;right:0;top:0;bottom:calc(58px + env(safe-area-inset-bottom,0px));overflow:hidden;z-index:2}
 #stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform-origin:center center;transform:translate(-50%,-50%) scale(.5)}
-.slide{position:absolute;inset:0;padding:84px 110px 96px;display:none;background:var(--bg)}
+.slide{position:absolute;inset:0;padding:72px 90px 90px;display:none}
 .slide.active{display:block}
-.slide::before{content:"";position:absolute;inset:0;background:
-  radial-gradient(1200px 600px at 20% -10%, rgba(121,212,255,.08), transparent 60%),
-  radial-gradient(900px 500px at 90% 110%, rgba(244,185,74,.07), transparent 60%);pointer-events:none}
 .slide>*{position:relative}
 
 /* type */
-.eyebrow{font-family:var(--mono);font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);display:flex;gap:18px;align-items:center}
+.eyebrow{font-family:var(--mono);font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);display:flex;gap:16px;align-items:center}
 .eyebrow .ph{color:var(--mute)}
-.eyebrow::before{content:"";width:34px;height:1px;background:var(--amber)}
-h1{font-family:var(--display);font-weight:500;font-size:64px;line-height:1.02;margin:22px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:19ch}
-h1 em{font-style:italic;color:var(--amber2)}
-h2{font-family:var(--display);font-weight:500;font-size:46px;line-height:1.06;margin:18px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:22ch}
-h2 em{font-style:italic;color:var(--amber2)}
-p{font-size:22px;line-height:1.5;color:var(--mute);max-width:60ch;margin:0}
+.eyebrow::before{content:"";width:30px;height:1px;background:var(--amber)}
+h1{font-family:var(--display);font-weight:500;font-size:64px;line-height:1.02;margin:18px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:19ch;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+h1 em,h2 em{font-style:italic;color:var(--amber2)}
+h2{font-family:var(--display);font-weight:500;font-size:42px;line-height:1.06;margin:14px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:20ch;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+p{font-size:19px;line-height:1.5;color:var(--mute);max-width:52ch;margin:0}
 p strong{color:var(--fg);font-weight:600}
-.lede{font-size:26px;color:var(--fg);max-width:46ch}
-.mono{font-family:var(--mono)}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.small{font-size:17px;line-height:1.45}
-.tag{display:inline-block;font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);border:1px solid rgba(121,212,255,.35);border-radius:999px;padding:5px 12px}
+.lede{font-size:24px;color:var(--fg);max-width:40ch}
+.small{font-size:16px;line-height:1.45}
+.tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);border:1px solid rgba(121,212,255,.35);border-radius:999px;padding:4px 11px}
 .tag.amber{color:var(--amber);border-color:rgba(244,185,74,.4)}
 .tag.rose{color:var(--rose);border-color:rgba(255,115,132,.4)}
-.foot{position:absolute;left:110px;right:110px;bottom:40px;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.foot{position:absolute;left:90px;right:90px;bottom:34px;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 
-/* grids */
-.two{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;margin-top:28px}
-.cols{display:grid;gap:22px;margin-top:34px}
+/* glass panels */
+.panel{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:20px;padding:26px 30px;min-width:0}
+.left{position:absolute;left:90px;top:150px;width:560px;display:grid;gap:18px}
+.right{position:absolute;right:90px;top:150px;width:560px;display:grid;gap:18px}
+.bottom{position:absolute;left:90px;right:90px;bottom:84px;display:flex;gap:18px;align-items:flex-end}
+.cols{display:grid;gap:16px}
 .cols.c3{grid-template-columns:repeat(3,1fr)}
 .cols.c4{grid-template-columns:repeat(4,1fr)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 26px 24px;min-width:0}
-.card h3{font-family:var(--display);font-weight:500;font-size:28px;margin:0 0 8px;line-height:1.1}
-.card p{font-size:var(--cp,18px);line-height:1.45}
-.card.hi{border-color:rgba(244,185,74,.5);background:linear-gradient(180deg,rgba(244,185,74,.10),rgba(244,185,74,.02))}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:10px 22px;font-size:18px;color:var(--mute);align-items:baseline}
-.kv b{font-family:var(--mono);font-weight:500;color:var(--fg);font-size:17px;letter-spacing:.04em}
-.list{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px;font-size:20px;line-height:1.4;color:var(--mute)}
-.list li{display:grid;grid-template-columns:30px 1fr;gap:14px;align-items:start}
-.list li::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--amber);margin-top:9px;justify-self:center}
+.card{background:var(--glass2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:16px;padding:20px 22px 18px;min-width:0}
+.card h3{font-family:var(--display);font-weight:500;font-size:24px;margin:0 0 6px;line-height:1.1}
+.card p{font-size:15.5px;line-height:1.45}
+.card.hi{border-color:rgba(244,185,74,.5);background:linear-gradient(180deg,rgba(244,185,74,.14),rgba(14,20,40,.78))}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:16px;color:var(--mute);align-items:baseline}
+.kv b{font-family:var(--mono);font-weight:500;color:var(--fg);font-size:14px;letter-spacing:.04em}
+.list{list-style:none;padding:0;margin:0;display:grid;gap:12px;font-size:17px;line-height:1.4;color:var(--mute)}
+.list li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start}
+.list li::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);margin-top:8px;justify-self:center}
 .list li b{color:var(--fg);font-weight:600}
-.list.sky li::before{background:var(--sky)}
-.stat{display:grid;gap:4px}
-.stat .v{font-family:var(--display);font-size:54px;line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
-.stat .v span{font-family:var(--mono);font-size:18px;color:var(--amber);margin-left:8px;letter-spacing:.08em}
-.stat .l{font-size:16px;color:var(--mute);letter-spacing:.02em}
-.stats{display:flex;gap:56px;margin-top:30px;flex-wrap:wrap}
+.stat{display:grid;gap:2px}
+.stat .v{font-family:var(--display);font-size:46px;line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
+.stat .v span{font-family:var(--mono);font-size:15px;color:var(--amber);margin-left:6px;letter-spacing:.08em}
+.stat .l{font-size:14px;color:var(--mute)}
+.stats{display:flex;gap:36px;flex-wrap:wrap}
+.photo{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.photo img{display:block;width:100%;height:100%;object-fit:cover}
+.photo .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 14px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg);background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.photo.kb img{transform-origin:center;animation:kb 16s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.14) translate(-2%,2%)}}
+.cut{height:46px;width:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.6))}
+.cut.big{height:70px}
 
 /* animation primitives */
 .a{opacity:0}
 .active .a{animation:rise .85s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0s)}
-@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-.active .ax{animation:fade .8s ease both;animation-delay:var(--d,0s)}
-.ax{opacity:0}
-@keyframes fade{to{opacity:1}}
-.draw{stroke-dasharray:1;stroke-dashoffset:1}
-.active .draw{animation:draw 1.8s cubic-bezier(.4,0,.2,1) forwards;animation-delay:var(--d,0s)}
-@keyframes draw{to{stroke-dashoffset:0}}
-.pulse{transform-box:fill-box;transform-origin:center}
-.active .pulse{animation:pulse 2.4s ease-in-out infinite;animation-delay:var(--d,0s)}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.18);opacity:.5}}
-.ring{transform-box:fill-box;transform-origin:center;opacity:0}
-.active .ring{animation:ring 3.2s ease-out infinite;animation-delay:var(--d,0s)}
-@keyframes ring{0%{transform:scale(.2);opacity:.8}100%{transform:scale(1);opacity:0}}
-.rotor{transform-box:fill-box;transform-origin:center}
-.active .rotor{animation:spin .9s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.grow{transform-box:fill-box;transform-origin:left center;transform:scaleX(0)}
-.active .grow{animation:grow 1.2s cubic-bezier(.3,.7,.2,1) forwards;animation-delay:var(--d,0s)}
-@keyframes grow{to{transform:scaleX(1)}}
-.fill{transform-box:fill-box;transform-origin:bottom center;transform:scaleY(0)}
-.active .fill{animation:fillup 2.2s cubic-bezier(.3,.7,.2,1) forwards;animation-delay:var(--d,0s)}
-@keyframes fillup{to{transform:scaleY(1)}}
-.sweep{transform-box:fill-box;transform-origin:center;opacity:0}
-.active .sweep{animation:sweep .9s ease-out forwards;animation-delay:var(--d,0s)}
-@keyframes sweep{from{opacity:0;transform:scale(.6) rotate(-12deg)}to{opacity:1;transform:none}}
-.float{transform-box:fill-box;transform-origin:center}
-.active .float{animation:floaty 5s ease-in-out infinite}
-@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-
-/* svg typography */
-svg{overflow:visible}
-svg text{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;fill:var(--mute)}
-svg text.big{font-family:var(--display);font-size:22px;letter-spacing:0;text-transform:none;fill:var(--fg)}
-svg text.fg{fill:var(--fg)}
-svg text.amber{fill:var(--amber)}
-svg text.sky{fill:var(--sky)}
-svg text.rose{fill:var(--rose)}
-svg text.mid{text-anchor:middle}
-.pl{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:10 7;fill:none;opacity:.7}
-.pl.v{stroke:var(--fg);opacity:.35}
-.lz{fill:none;stroke:var(--sky);stroke-width:2}
-.obj{fill:rgba(255,115,132,.08);stroke:var(--rose);stroke-width:1.6;stroke-dasharray:6 5}
-.route{fill:none;stroke:var(--sky);stroke-width:2;stroke-dasharray:1;stroke-dashoffset:1}
-.gnd{fill:none;stroke:var(--fg);stroke-width:2.2;stroke-linecap:round}
-.node{fill:var(--bg);stroke:var(--fg);stroke-width:2}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.pulse{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 
 /* chrome */
-#bar{position:fixed;left:0;right:0;bottom:0;height:calc(58px + env(safe-area-inset-bottom,0px));padding:0 18px env(safe-area-inset-bottom,0px);background:var(--bg2);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;z-index:5}
+#bar{position:fixed;left:0;right:0;bottom:0;height:calc(58px + env(safe-area-inset-bottom,0px));padding:0 18px env(safe-area-inset-bottom,0px);background:rgba(7,11,22,.9);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;z-index:5}
 #prog{position:absolute;left:0;top:-1px;height:2px;background:var(--amber);width:0;transition:width .5s cubic-bezier(.2,.7,.2,1)}
 .btn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--fg);font-family:var(--body);font-weight:600;font-size:14px;border-radius:10px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;line-height:1}
 .btn:hover{border-color:rgba(238,240,248,.4)}
@@ -126,660 +90,297 @@ svg text.mid{text-anchor:middle}
 #dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--dim);cursor:pointer}
 #dots button.cur{background:var(--amber);transform:scale(1.3)}
 #dots button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-#cap{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(900px,calc(100vw - 32px));background:rgba(10,14,28,.86);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:12px 18px;font-size:16px;line-height:1.45;color:var(--fg);text-align:center;z-index:4;display:none}
+#cap{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(900px,calc(100vw - 32px));background:rgba(7,11,22,.86);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:12px 18px;font-size:16px;line-height:1.45;color:var(--fg);text-align:center;z-index:4;display:none}
 #cap.show{display:block}
-.hint{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.hint{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+#load{position:fixed;inset:0;z-index:6;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);transition:opacity .8s}
+#load.off{opacity:0;pointer-events:none}
+#load i{width:160px;height:2px;background:var(--line);display:block;overflow:hidden}
+#load i::after{content:"";display:block;height:100%;width:40%;background:var(--amber);animation:ld 1.2s ease-in-out infinite}
+@keyframes ld{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+#nogl{display:none;position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;background:var(--glass2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--mute)}
 @media (max-width:700px){#dots{display:none}.btn .lbl{display:none}#cap{font-size:14px;bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
-@media (prefers-reduced-motion:reduce){
-  .active .a,.active .ax,.active .draw,.active .grow,.active .fill,.active .sweep{animation-duration:.01s;animation-delay:0s}
-  .active .pulse,.active .ring,.active .rotor,.active .float{animation:none}.ring{opacity:0}
-}
+@media (prefers-reduced-motion:reduce){.active .a{animation-duration:.01s;animation-delay:0s}.pulse,.photo.kb img{animation:none}}
 </style>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <!-- aircraft glyphs, nose toward +x -->
-    <symbol id="ch47" viewBox="-30 -22 60 44">
-      <rect x="-22" y="-6" width="44" height="12" rx="6" fill="currentColor"/>
-      <g class="rotor"><circle cx="-11" cy="0" r="15" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><line x1="-26" y1="0" x2="4" y2="0" stroke="currentColor" stroke-width="1.6" opacity=".8"/><line x1="-11" y1="-15" x2="-11" y2="15" stroke="currentColor" stroke-width="1.6" opacity=".8"/></g>
-      <g class="rotor"><circle cx="11" cy="0" r="15" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><line x1="-4" y1="0" x2="26" y2="0" stroke="currentColor" stroke-width="1.6" opacity=".8"/><line x1="11" y1="-15" x2="11" y2="15" stroke="currentColor" stroke-width="1.6" opacity=".8"/></g>
-    </symbol>
-    <symbol id="uh60" viewBox="-30 -18 60 36">
-      <line x1="-14" y1="0" x2="-25" y2="0" stroke="currentColor" stroke-width="3"/>
-      <circle cx="-25" cy="0" r="3.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
-      <rect x="-13" y="-5" width="26" height="10" rx="5" fill="currentColor"/>
-      <g class="rotor"><circle cx="0" cy="0" r="14" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><line x1="-14" y1="0" x2="14" y2="0" stroke="currentColor" stroke-width="1.6" opacity=".8"/><line x1="0" y1="-14" x2="0" y2="14" stroke="currentColor" stroke-width="1.6" opacity=".8"/></g>
-    </symbol>
-    <symbol id="ah64" viewBox="-30 -16 60 32">
-      <line x1="-15" y1="0" x2="-27" y2="0" stroke="currentColor" stroke-width="2.5"/>
-      <line x1="-27" y1="-4" x2="-27" y2="4" stroke="currentColor" stroke-width="2"/>
-      <line x1="-2" y1="-11" x2="-2" y2="11" stroke="currentColor" stroke-width="3"/>
-      <rect x="-15" y="-3.5" width="30" height="7" rx="3.5" fill="currentColor"/>
-      <g class="rotor"><circle cx="-3" cy="0" r="13" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><line x1="-16" y1="0" x2="10" y2="0" stroke="currentColor" stroke-width="1.6" opacity=".8"/><line x1="-3" y1="-13" x2="-3" y2="13" stroke="currentColor" stroke-width="1.6" opacity=".8"/></g>
-    </symbol>
-    <symbol id="pax" viewBox="0 0 10 14"><circle cx="5" cy="3" r="2.6" fill="currentColor"/><path d="M1 14v-5a4 4 0 0 1 8 0v5z" fill="currentColor"/></symbol>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>
-  </defs>
-</svg>
+<canvas id="gl"></canvas>
+<div id="vignette"></div>
+<div id="load"><span>Building the battlespace</span><i></i></div>
+<div id="nogl">3D view unavailable in this browser. The brief still reads as slides.</div>
 
 <div id="wrap"><div id="stage">
 
-<!-- 1 · TITLE -->
-<section class="slide" data-t="12" data-cap="Fuel Forward. A concept brief on seizing a Jump Forward Arming and Refueling Point, and why it is the hinge of the Division's deep attack.">
+<!-- 1 TITLE -->
+<section class="slide" data-t="16" data-cap="Fuel Forward. A concept brief on seizing a Jump Forward Arming and Refueling Point, and why it is the hinge of the Division's deep attack.">
   <div class="eyebrow a">Concept brief <span class="ph">J-FARP seizure</span></div>
-  <h1 class="a" style="--d:.15s;font-size:112px;margin-top:40px">Fuel <em>forward.</em></h1>
-  <p class="lede a" style="--d:.35s;margin-top:26px;font-size:30px">How an infantry company puts a gas station 200 miles into enemy territory, and why that is what lets the Division strike deep.</p>
-  <svg viewBox="0 0 1400 260" width="1400" height="260" style="position:absolute;left:100px;bottom:120px">
-    <path id="tp" d="M60 200 C 360 60, 620 240, 860 120 S 1240 40, 1340 80" fill="none" stroke="var(--sky)" stroke-width="1.5" opacity=".55" pathLength="1" class="draw" style="--d:.5s"/>
-    <circle cx="60" cy="200" r="6" fill="var(--fg)"/><text x="60" y="236" class="mid">Staging base</text>
-    <circle cx="700" cy="160" r="7" fill="var(--amber)" class="pulse" style="--d:1s"/><circle cx="700" cy="160" r="30" fill="none" stroke="var(--amber)" class="ring" style="--d:1s"/><text x="700" y="206" class="mid amber">J-FARP</text>
-    <circle cx="1340" cy="80" r="6" fill="var(--rose)"/><text x="1340" y="116" class="mid rose">Deep target</text>
-    <g style="color:var(--sky2)"><use href="#ah64" width="46" height="26" x="-23" y="-13"><animateMotion dur="9s" begin="1s" repeatCount="indefinite" rotate="auto" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#tp"/></animateMotion></use></g>
-  </svg>
-  <div class="foot"><span>Dog Company · 2-506 IN · with 6-101 CAB</span><span class="hint">→ to advance · P to play</span></div>
+  <h1 class="a" style="--d:.15s;font-size:112px;margin-top:36px">Fuel <em>forward.</em></h1>
+  <p class="lede a" style="--d:.35s;margin-top:22px;font-size:28px;max-width:34ch">How an infantry company puts a gas station 200 miles into enemy territory, and why that is what lets the Division strike deep.</p>
+  <div class="foot"><span>Dog Company · 2-506 IN · with 6-101 CAB</span><span class="hint">→ to advance · P to play · drag to look</span></div>
 </section>
 
-<!-- 2 · THE REACH PROBLEM -->
-<section class="slide" data-t="18" data-cap="The deep fight is farther than a full tank. Fuel, ordnance, reserve and time on station all compete for the same gas, so the Division's deep targets sit beyond what an attack helicopter can reach and still fight.">
-  <div class="eyebrow a">The problem <span class="ph">reach</span></div>
-  <h2 class="a" style="--d:.1s">The deep fight is farther than <em>a full tank.</em></h2>
-  <div class="two">
-    <div>
-      <p class="a" style="--d:.3s">An attack helicopter's combat radius is finite. Fuel, ordnance, a reserve and time over the target all draw on the same tank. Push the target past that radius and the deep attack becomes a one-way trip, or it does not launch at all.</p>
-      <div class="stats">
-        <div class="stat a" style="--d:.6s"><div class="v">180–200<span>NM</span></div><div class="l">Staging base to the J-FARP site</div></div>
-        <div class="stat a" style="--d:.75s"><div class="v">100–150<span>NM</span></div><div class="l">J-FARP to the Division deep target</div></div>
-      </div>
-      <p class="a small" style="--d:1s;margin-top:28px">Distances from the J-FARP Seizure CONOP. The target is roughly 300 nautical miles from where the aircraft start.</p>
-    </div>
-    <svg viewBox="0 0 760 460" width="760" height="460">
-      <defs><clipPath id="clipA"><rect x="0" y="0" width="760" height="460"/></clipPath></defs>
-      <g clip-path="url(#clipA)">
-        <circle cx="80" cy="360" r="0" fill="rgba(121,212,255,.05)" stroke="var(--sky)" stroke-width="1.5" stroke-dasharray="8 6" class="ring2"><animate attributeName="r" from="0" to="330" dur="2.2s" begin="1s" fill="freeze" calcMode="spline" keySplines=".2 .7 .2 1"/></circle>
-      </g>
-      <text x="300" y="130" class="sky"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3s" fill="freeze"/>Practical combat radius</text>
-      <text x="300" y="150"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3s" fill="freeze"/>fuel · ordnance · reserve · station time</text>
-      <line x1="80" y1="360" x2="690" y2="90" stroke="var(--fg)" stroke-width="1" opacity=".35" stroke-dasharray="3 5"/>
-      <circle cx="80" cy="360" r="7" fill="var(--fg)"/><text x="80" y="396" class="mid fg">Staging base</text>
-      <circle cx="690" cy="90" r="8" fill="var(--rose)" class="pulse"/><circle cx="690" cy="90" r="40" fill="none" stroke="var(--rose)" class="ring"/><text x="690" y="60" class="mid rose">Division deep target</text>
-      <text x="690" y="130" class="mid"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3.6s" fill="freeze"/>≈ 300 NM out</text>
-      <g style="color:var(--sky2)"><use href="#ah64" width="46" height="26" x="-23" y="-13"><animateMotion dur="2.4s" begin="1s" fill="freeze" rotate="auto" path="M80 360 L 350 240"/></use></g>
-      <text x="420" y="300" class="rose"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3.4s" fill="freeze"/>Out of reach</text>
-    </svg>
+<!-- 2 REACH -->
+<section class="slide" data-t="22" data-cap="The deep fight is farther than a full tank. Fuel, ordnance, reserve and time on station all compete for the same gas, so the Division's deep targets sit beyond what an attack helicopter can reach and still fight.">
+  <div class="left">
+    <div class="a"><div class="eyebrow">The problem <span class="ph">reach</span></div><h2>The deep fight is farther than <em>a full tank.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p>An attack helicopter's combat radius is finite. Fuel, ordnance, a reserve and time over the target all draw on the same tank. Push the target past that radius and the deep attack becomes a one-way trip, or it does not launch at all.</p>
+      <div class="stats" style="margin-top:18px">
+        <div class="stat"><div class="v">180–200<span>NM</span></div><div class="l">Staging base to the J-FARP site</div></div>
+        <div class="stat"><div class="v">100–150<span>NM</span></div><div class="l">J-FARP to the Division deep target</div></div>
+      </div></div>
+    <div class="panel a" style="--d:9s;border-color:rgba(255,115,132,.5)"><p><strong style="color:var(--rose)">Bingo fuel.</strong> The pair turns back short of the city. Everything past that line belongs to the enemy until fuel moves forward.</p></div>
   </div>
   <div class="foot"><span>Why a forward fuel point exists</span><span>02</span></div>
 </section>
 
-<!-- 3 · WHAT A FARP IS -->
-<section class="slide" data-t="22" data-cap="Doctrine defines a FARP as a temporary facility organized, equipped and deployed to provide fuel and ammunition for aviation units in combat. Four variants trade permanence for speed. The jump FARP is the lightest and fastest of them.">
-  <div class="eyebrow a">Doctrine <span class="ph">what a FARP is</span></div>
-  <h2 class="a" style="--d:.1s">A temporary facility that gives aircraft <em>fuel and ammunition</em> close to the fight.</h2>
-  <p class="a" style="--d:.3s;margin-top:18px">That is the doctrinal definition, from Army aviation's field manual and the techniques publication for forward arming and refueling points. The point is distance: every mile the fuel moves forward is a mile the aircraft does not have to fly back. Doctrine describes four variants, each trading permanence for speed.</p>
-  <div class="cols c4">
-    <div class="card a" style="--d:.5s"><span class="tag">Active</span><h3>Manned and running</h3><p>Equipment set, crews in place, fuel flowing. The standard FARP supporting a continuous operation.</p></div>
-    <div class="card a" style="--d:.65s"><span class="tag">Silent</span><h3>Set, then waits</h3><p>Established and camouflaged but not operating. It is activated only when aircraft are inbound, to stay hidden until needed.</p></div>
-    <div class="card a hi" style="--d:.8s"><span class="tag amber">Jump</span><h3>Small, fast, air-delivered</h3><p>A minimal footprint FARP that displaces rapidly, often with the fuel arriving on the aircraft themselves. Built to support one deep push, then move or close.</p></div>
-    <div class="card a" style="--d:.95s"><span class="tag">Rolling</span><h3>Moves with the fight</h3><p>Displaces by bounds behind the maneuvering unit so support keeps pace with the advance.</p></div>
+<!-- 3 WHAT A FARP IS -->
+<section class="slide" data-t="24" data-cap="Doctrine defines a FARP as a temporary facility organized, equipped and deployed to provide fuel and ammunition for aviation units in combat. Four variants trade permanence for speed. The jump FARP is the lightest and fastest of them.">
+  <div class="a"><div class="eyebrow">Doctrine <span class="ph">what a FARP is</span></div>
+  <h2 style="max-width:26ch">A temporary facility that gives aircraft <em>fuel and ammunition</em> close to the fight.</h2></div>
+  <p class="a" style="--d:.3s;margin-top:14px;max-width:64ch">That is the doctrinal definition, from Army aviation's field manual and the techniques publication for forward arming and refueling points. Every mile the fuel moves forward is a mile the aircraft does not have to fly back. Doctrine describes four variants.</p>
+  <div class="bottom" style="bottom:140px">
+    <div class="cols c4" style="width:100%">
+      <div class="card a" style="--d:.6s"><span class="tag">Active</span><h3>Manned and running</h3><p>Equipment set, crews in place, fuel flowing. The standard FARP behind a continuous operation.</p></div>
+      <div class="card a" style="--d:.75s"><span class="tag">Silent</span><h3>Set, then waits</h3><p>Established and camouflaged but not operating. Activated only when aircraft are inbound.</p></div>
+      <div class="card a hi" style="--d:.9s"><span class="tag amber">Jump</span><h3>Small, fast, air-delivered</h3><p>Minimal footprint, displaces rapidly, often with the fuel arriving on the aircraft themselves. Built for one deep push.</p></div>
+      <div class="card a" style="--d:1.05s"><span class="tag">Rolling</span><h3>Moves with the fight</h3><p>Displaces by bounds behind the maneuvering unit so support keeps pace with the advance.</p></div>
+    </div>
   </div>
-  <div class="two" style="margin-top:30px;gap:40px">
-    <p class="a small" style="--d:1.2s"><strong>How the fuel gets there.</strong> In this concept a CH-47 carries Extended Range Fuel System tanks and pumps internally and lands at the site. The Chinook itself is the fuel point. The unit's terms for that configuration are FATCOW and WETCOW.</p>
-    <p class="a small" style="--d:1.35s"><strong>What makes it a seizure.</strong> The site is not ours yet. An infantry company air assaults in, isolates the ground, takes it, and holds it long enough for the fuel to arrive, the attack aircraft to turn, and everyone to leave.</p>
-  </div>
-  <div class="foot"><span>FM 3-04 · ATP 3-04.17</span><span>03</span></div>
+  <div class="foot"><span>FM 3-04 · ATP 3-04.17 · the Chinook on the ground is the fuel point</span><span>03</span></div>
 </section>
 
-<!-- 4 · WHY IT MATTERS -->
-<section class="slide" data-t="20" data-cap="A FARP moves the start line. Refuel 200 miles forward and the same aircraft arrives over a target 300 miles out with full fuel, fights longer, and turns forward instead of flying hours home. That is what lets a division mass combat power in its deep area.">
-  <div class="eyebrow a">Why it matters <span class="ph">the Division deep area</span></div>
-  <h2 class="a" style="--d:.1s">A FARP moves the <em>start line.</em></h2>
-  <div class="two">
-    <svg viewBox="0 0 760 460" width="760" height="460">
-      <defs><clipPath id="clipB"><rect x="0" y="0" width="760" height="460"/></clipPath></defs>
-      <g clip-path="url(#clipB)">
-        <circle cx="80" cy="360" r="330" fill="none" stroke="var(--sky)" stroke-width="1" stroke-dasharray="8 6" opacity=".3"/>
-        <circle cx="460" cy="200" r="0" fill="rgba(244,185,74,.07)" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="8 6"><animate attributeName="r" from="0" to="320" dur="2.2s" begin="4.2s" fill="freeze" calcMode="spline" keySplines=".2 .7 .2 1"/></circle>
-      </g>
-      <path d="M80 360 L 460 200" fill="none" stroke="var(--fg)" stroke-width="1" opacity=".35" stroke-dasharray="3 5"/>
-      <path d="M460 200 L 690 90" fill="none" stroke="var(--fg)" stroke-width="1" opacity=".35" stroke-dasharray="3 5"/>
-      <circle cx="80" cy="360" r="7" fill="var(--fg)"/><text x="80" y="396" class="mid fg">Staging base</text>
-      <circle cx="460" cy="200" r="0" fill="var(--amber)"><animate attributeName="r" from="0" to="9" dur=".5s" begin="3.4s" fill="freeze"/></circle>
-      <circle cx="460" cy="200" r="34" fill="none" stroke="var(--amber)" class="ring" style="--d:3.6s"/>
-      <text x="460" y="244" class="mid amber"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="3.6s" fill="freeze"/>J-FARP · refuel and rearm</text>
-      <circle cx="690" cy="90" r="8" fill="var(--rose)" class="pulse"/><text x="690" y="60" class="mid rose">Division deep target</text>
-      <g style="color:var(--sky2)"><use href="#ah64" width="46" height="26" x="-23" y="-13">
-        <animateMotion dur="2.6s" begin="0.8s" fill="freeze" rotate="auto" path="M80 360 L 460 200"/>
-        <animateMotion dur="2s" begin="6.6s" fill="freeze" rotate="auto" path="M460 200 L 690 90"/>
-      </use></g>
-      <text x="250" y="150" class="amber"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="6.4s" fill="freeze"/>New radius, full tank</text>
-      <text x="580" y="170" class="mint"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="8.4s" fill="freeze"/>In reach</text>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s">The Division's deep area is the ground beyond what its brigades are fighting over, where aviation shapes the enemy before the main effort arrives. Reaching it is a fuel problem before it is a tactics problem.</p>
-      <ul class="list">
-        <li class="a" style="--d:.7s"><div><b>Reach.</b> Refuel 200 miles forward and targets 300 miles out are inside the radius.</div></li>
-        <li class="a" style="--d:.9s"><div><b>Time on station.</b> Aircraft arrive over the target with a full tank instead of a reserve.</div></li>
-        <li class="a" style="--d:1.1s"><div><b>Tempo.</b> Turn aircraft forward in minutes rather than flying hours back to rearm.</div></li>
-        <li class="a" style="--d:1.3s"><div><b>Mass.</b> More sorties on the objective in the same window. The mission statement says it plainly: mass combat power in the Division deep area.</div></li>
-      </ul>
-      <p class="a small" style="--d:1.6s;margin-top:22px">For the 101st this is the enabler for the large-scale, long-range air assault. The deep attack sets conditions on the far objective. The jump FARP sets conditions for the deep attack.</p>
-    </div>
+<!-- 4 WHY -->
+<section class="slide" data-t="24" data-cap="A FARP moves the start line. Refuel 200 miles forward and the same aircraft arrives over a target 300 miles out with full fuel, fights longer, and turns forward instead of flying hours home. That is what lets a division mass combat power in its deep area.">
+  <div class="left">
+    <div class="a"><div class="eyebrow">Why it matters <span class="ph">the Division deep area</span></div><h2>A FARP moves the <em>start line.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p>The Division's deep area is the ground beyond what its brigades are fighting over, where aviation shapes the enemy before the main effort arrives. Reaching it is a fuel problem before it is a tactics problem.</p>
+      <ul class="list" style="margin-top:16px">
+        <li class="a" style="--d:6s"><div><b>Reach.</b> Refuel 200 miles forward and targets 300 miles out are inside the radius.</div></li>
+        <li class="a" style="--d:8s"><div><b>Time on station.</b> Arrive with a full tank instead of a reserve.</div></li>
+        <li class="a" style="--d:10s"><div><b>Tempo.</b> Turn aircraft forward in minutes instead of flying hours back.</div></li>
+        <li class="a" style="--d:12s"><div><b>Mass.</b> More sorties on the objective in the same window. The mission statement says it: mass combat power in the Division deep area.</div></li>
+      </ul></div>
+    <p class="a small" style="--d:14s;padding:0 6px"><strong>For the 101st</strong> this is the enabler for the large-scale, long-range air assault. The deep attack sets conditions on the far objective. The jump FARP sets conditions for the deep attack.</p>
   </div>
   <div class="foot"><span>Reach · station time · tempo · mass</span><span>04</span></div>
 </section>
 
-<!-- 5 · CONCEPT IN ONE PICTURE -->
-<section class="slide" data-t="26" data-cap="The concept in one picture: three lifts. Lift one puts the ground task force on the site and seizes it. Lift two brings the FARP task force and the fuel. Lift three is the deep attack, which lands, fuels and arms at the FARP and continues to the target.">
-  <div class="eyebrow a">The concept <span class="ph">three lifts</span></div>
-  <h2 class="a" style="--d:.1s">Seize the ground. Land the fuel. <em>Turn the attack.</em></h2>
-  <p class="a" style="--d:.25s;margin-top:14px;max-width:70ch">Mission: on order, an infantry company (minus) conducts air assault operations to seize a J-FARP to enable combat aviation assets to mass combat power in the Division deep area to defeat enemy forces and seize key terrain.</p>
-  <svg viewBox="0 0 1380 400" width="1380" height="400" style="margin-top:10px">
-    <path id="l1" d="M110 320 C 320 160, 520 180, 700 230" fill="none"/>
-    <path id="l2" d="M110 330 C 300 230, 540 260, 700 250" fill="none"/>
-    <path id="l3a" d="M110 310 C 320 120, 560 150, 700 220" fill="none"/>
-    <path id="l3b" d="M700 220 C 900 120, 1100 140, 1270 110" fill="none"/>
-    <path d="M110 320 C 320 160, 520 180, 700 230" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity=".35" stroke-dasharray="6 6"/>
-    <path d="M700 220 C 900 120, 1100 140, 1270 110" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity=".35" stroke-dasharray="6 6"/>
-    <!-- nodes -->
-    <circle cx="110" cy="320" r="8" fill="var(--fg)"/><text x="110" y="356" class="mid fg">Staging base</text><text x="110" y="376" class="mid">ISB</text>
-    <circle cx="700" cy="240" r="46" fill="rgba(244,185,74,.06)" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="6 5"/>
-    <circle cx="700" cy="240" r="8" fill="var(--amber)" class="pulse"/><text x="700" y="312" class="mid amber">J-FARP site</text><text x="700" y="332" class="mid">seized · fuel landed · aircraft turned</text>
-    <circle cx="1270" cy="110" r="9" fill="var(--rose)" class="pulse"/><circle cx="1270" cy="110" r="40" fill="none" stroke="var(--rose)" class="ring"/><text x="1270" y="156" class="mid rose">Division deep target</text>
-    <text x="400" y="330" class="mid">180–200 NM</text><text x="990" y="210" class="mid">100–150 NM</text>
-    <!-- lift 1 -->
-    <g style="color:var(--sky2)">
-      <use href="#ch47" width="56" height="40" x="-28" y="-20"><animateMotion dur="3s" begin="0.6s" fill="freeze" rotate="auto"><mpath href="#l1"/></animateMotion></use>
-      <use href="#ch47" width="56" height="40" x="-28" y="-20"><animateMotion dur="3s" begin="0.95s" fill="freeze" rotate="auto"><mpath href="#l1"/></animateMotion></use>
-      <use href="#uh60" width="44" height="28" x="-22" y="-14"><animateMotion dur="3s" begin="1.3s" fill="freeze" rotate="auto"><mpath href="#l1"/></animateMotion></use>
-      <use href="#uh60" width="44" height="28" x="-22" y="-14"><animateMotion dur="3s" begin="1.6s" fill="freeze" rotate="auto"><mpath href="#l1"/></animateMotion></use>
-    </g>
-    <g style="color:var(--amber2)">
-      <use href="#ch47" width="56" height="40" x="-28" y="-20"><animateMotion dur="3s" begin="6s" fill="freeze" rotate="auto"><mpath href="#l2"/></animateMotion></use>
-      <use href="#ch47" width="56" height="40" x="-28" y="-20"><animateMotion dur="3s" begin="6.4s" fill="freeze" rotate="auto"><mpath href="#l2"/></animateMotion></use>
-    </g>
-    <g style="color:var(--sky2)">
-      <use href="#ah64" width="46" height="26" x="-23" y="-13"><animateMotion dur="3s" begin="11s" fill="freeze" rotate="auto"><mpath href="#l3a"/></animateMotion><animateMotion dur="2.6s" begin="15.4s" fill="freeze" rotate="auto"><mpath href="#l3b"/></animateMotion></use>
-      <use href="#ah64" width="46" height="26" x="-23" y="-13"><animateMotion dur="3s" begin="11.4s" fill="freeze" rotate="auto"><mpath href="#l3a"/></animateMotion><animateMotion dur="2.6s" begin="15.8s" fill="freeze" rotate="auto"><mpath href="#l3b"/></animateMotion></use>
-    </g>
-    <!-- lift legend -->
-    <g transform="translate(60,40)">
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin=".4s" fill="freeze"/>
-        <text x="0" y="0" class="big" style="font-size:20px">Lift 1 · Ground Task Force</text><text x="0" y="24">2× CH-47 · 2× UH-60 · C2 node · 82 PAX</text></g>
-      <g transform="translate(0,70)"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="5.8s" fill="freeze"/>
-        <text x="0" y="0" class="big" style="font-size:20px;fill:var(--amber2)">Lift 2 · FARP Task Force</text><text x="0" y="24">2× CH-47 FATCOW / WETCOW · 18 PAX · engineers, scouts, mortars, 1 ISV</text></g>
-      <g transform="translate(0,140)"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="10.8s" fill="freeze"/>
-        <text x="0" y="0" class="big" style="font-size:20px">Lift 3 · Deep Attack</text><text x="0" y="24">2× AH-64 · refuel and rearm at the J-FARP · continue to the target</text></g>
-    </g>
-  </svg>
+<!-- 5 CONCEPT -->
+<section class="slide" data-t="40" data-cap="The concept in one picture: three lifts. Lift one puts the ground task force on the site and seizes it. Lift two brings the FARP task force and the fuel. Lift three is the deep attack, which lands, fuels and arms at the FARP and continues to the target.">
+  <div class="a"><div class="eyebrow">The concept <span class="ph">three lifts</span></div><h2 style="max-width:30ch">Seize the ground. Land the fuel. <em>Turn the attack.</em></h2></div>
+  <p class="a small" style="--d:.3s;margin-top:12px;max-width:66ch">Mission: on order, an infantry company (minus) conducts air assault operations to seize a J-FARP to enable combat aviation assets to mass combat power in the Division deep area to defeat enemy forces and seize key terrain.</p>
+  <div class="right" style="top:auto;bottom:84px;width:470px">
+    <div class="card a" style="--d:1s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 1 · Ground Task Force</span><p style="margin-top:8px">2× CH-47 · 2× UH-60 · C2 node · 82 PAX. Lands, isolates, seizes the site.</p></div><img class="cut" src="assets/uh60.png" alt="UH-60 Black Hawk"></div>
+    <div class="card a hi" style="--d:14s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag amber">Lift 2 · FARP Task Force</span><p style="margin-top:8px">2× CH-47 FATCOW / WETCOW · 18 PAX plus engineers, scouts, mortars and 1 ISV. The fuel lands.</p></div></div>
+    <div class="card a" style="--d:24s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 3 · Deep Attack</span><p style="margin-top:8px">2× AH-64. Refuel and rearm at the J-FARP, then continue 100–150 NM to the target.</p></div><img class="cut" src="assets/ah64.png" alt="AH-64 Apache"></div>
+  </div>
   <div class="foot"><span>Source: J-FARP Seizure CONOP</span><span>05</span></div>
 </section>
 
-<!-- 6 · GROUND TASK FORCE -->
-<section class="slide" data-t="20" data-cap="The people who do it: an 83-soldier ground task force in three teams. Team Isolate blocks the ground around the site. Team Seize takes the objective. A security squad holds the fuel point itself.">
-  <div class="eyebrow a">Who <span class="ph">the Ground Task Force</span></div>
-  <h2 class="a" style="--d:.1s">Eighty-three soldiers, <em>three jobs.</em></h2>
-  <div class="cols c3" style="margin-top:30px">
-    <div class="card a" style="--d:.4s">
-      <span class="tag">Team Isolate</span><h3>Own the approaches</h3>
-      <p>Blocks the avenues into the site so nothing reaches the fuel point while it is open. Carries the company command node.</p>
-      <div class="kv" style="margin-top:16px"><b>DOG 6</b><span>5 HQ · 19 (DOG 3) · 6 sappers · NOMAD · 1 SKEDCO</span><b>DOG 7</b><span>2 HQ · 7 mortars · 1 SKEDCO</span></div>
-      <svg viewBox="0 0 400 40" width="100%" height="40" style="margin-top:16px;color:var(--sky2)" id="paxA"></svg>
-    </div>
-    <div class="card a hi" style="--d:.6s">
-      <span class="tag amber">Team Seize</span><h3>Take the objective</h3>
-      <p>The assault element. Clears and seizes the ground the FARP will sit on and reports it secure, no later than H+1:00.</p>
-      <div class="kv" style="margin-top:16px"><b>DOG 26</b><span>25 (DOG 2) · 5 scouts</span></div>
-      <svg viewBox="0 0 400 40" width="100%" height="40" style="margin-top:16px;color:var(--amber2)" id="paxB"></svg>
-    </div>
-    <div class="card a" style="--d:.8s">
-      <span class="tag">WETCOW Security Squad</span><h3>Hold the fuel point</h3>
-      <p>Local security on the aircraft and refuel points, with the aviation battalion's own fuel and arming crews alongside.</p>
-      <div class="kv" style="margin-top:16px"><b>DOG 16</b><span>8 (DOG 1) · 4 Echo / 6-101 fuel handlers</span></div>
-      <svg viewBox="0 0 400 40" width="100%" height="40" style="margin-top:16px;color:var(--sky2)" id="paxC"></svg>
-    </div>
+<!-- 6 GTF -->
+<section class="slide" data-t="22" data-cap="The people who do it: an 83-soldier ground task force in three teams. Team Isolate blocks the ground around the site. Team Seize takes the objective. A security squad holds the fuel point itself.">
+  <div class="a"><div class="eyebrow">Who <span class="ph">the Ground Task Force</span></div><h2>Eighty-three soldiers, <em>three jobs.</em></h2></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 400px;gap:16px;margin-top:26px;align-items:start">
+    <div class="card a" style="--d:.4s"><span class="tag">Team Isolate</span><h3>Own the approaches</h3><p>Blocks the avenues into the site so nothing reaches the fuel point while it is open. Carries the command node.</p><div class="kv" style="margin-top:12px"><b>DOG 6</b><span>5 HQ · 19 (DOG 3) · 6 sappers · NOMAD · SKEDCO</span><b>DOG 7</b><span>2 HQ · 7 mortars · SKEDCO</span></div></div>
+    <div class="card a hi" style="--d:.55s"><span class="tag amber">Team Seize</span><h3>Take the objective</h3><p>The assault element. Clears and seizes the ground the FARP will sit on and reports it secure no later than H+1:00.</p><div class="kv" style="margin-top:12px"><b>DOG 26</b><span>25 (DOG 2) · 5 scouts</span></div></div>
+    <div class="card a" style="--d:.7s"><span class="tag">WETCOW Security Squad</span><h3>Hold the fuel point</h3><p>Local security on the aircraft and refuel points, with the aviation battalion's fuel handlers alongside.</p><div class="kv" style="margin-top:12px"><b>DOG 16</b><span>8 (DOG 1) · 4 Echo / 6-101</span></div></div>
+    <div class="photo kb a" style="--d:.9s;aspect-ratio:3/2"><img src="assets/formation.jpg" alt="A flight of helicopters on approach over a field"><div class="cap">Air assault inbound</div></div>
   </div>
-  <div class="two" style="margin-top:34px;gap:40px;grid-template-columns:1.2fr 1fr">
-    <div class="stats a" style="--d:1.1s;margin-top:0;gap:40px">
-      <div class="stat"><div class="v">66</div><div class="l">Infantry · 2-506 IN</div></div>
-      <div class="stat"><div class="v">6</div><div class="l">Sappers</div></div>
-      <div class="stat"><div class="v">5</div><div class="l">Scouts</div></div>
-      <div class="stat"><div class="v">4</div><div class="l">Echo / 6-101</div></div>
-      <div class="stat"><div class="v">2</div><div class="l">Fire support</div></div>
-      <div class="stat"><div class="v" style="color:var(--amber2)">83</div><div class="l">Total</div></div>
+  <div class="bottom">
+    <div class="panel a" style="--d:1.2s;display:flex;gap:30px;align-items:center;flex-wrap:wrap">
+      <div class="stat"><div class="v">66</div><div class="l">Infantry · 2-506 IN</div></div><div class="stat"><div class="v">6</div><div class="l">Sappers</div></div><div class="stat"><div class="v">5</div><div class="l">Scouts</div></div><div class="stat"><div class="v">4</div><div class="l">Echo / 6-101</div></div><div class="stat"><div class="v">2</div><div class="l">Fire support</div></div><div class="stat"><div class="v" style="color:var(--amber2)">83</div><div class="l">Total</div></div>
     </div>
-    <div class="a small" style="--d:1.3s">
-      <p class="small"><strong>Equipment.</strong> 4 infantry squad vehicles, 1 NOMAD command node, 2 SKEDCO litters.</p>
-      <p class="small" style="margin-top:10px"><strong>Lift options.</strong> Minimum force 1 CH-47 + 1 UH-60 · Course of action 1: 2 CH-47 + 1 UH-60 · Course of action 2: 3 CH-47 + 1 UH-60.</p>
-    </div>
+    <div class="panel a" style="--d:1.4s;display:flex;gap:18px;align-items:center;flex:1"><img class="cut big" src="assets/isv.png" alt="Infantry squad vehicle"><img class="cut big" src="assets/nomad.png" alt="NOMAD command vehicle"><p class="small"><strong>Equipment.</strong> 4 infantry squad vehicles, 1 NOMAD command node, 2 SKEDCO litters.<br><strong>Lift options.</strong> Minimum 1 CH-47 + 1 UH-60 · COA 1: 2 CH-47 + 1 UH-60 · COA 2: 3 CH-47 + 1 UH-60.</p></div>
   </div>
   <div class="foot"><span>Source: Operation Storm Surge AMB</span><span>06</span></div>
 </section>
 
-<!-- 7 · PLANNING DOCTRINE -->
+<!-- 7 PLANNING -->
 <section class="slide" data-t="22" data-cap="Air assault doctrine plans in reverse. What must be true on the ground decides where you land. The landing decides the route. The route decides the loads. The loads decide the staging. Pathfinders make the landing and pickup zones real.">
-  <div class="eyebrow a">Doctrine <span class="ph">how an air assault is planned</span></div>
-  <h2 class="a" style="--d:.1s">Plan it <em>backward</em> from the objective.</h2>
-  <p class="a" style="--d:.3s;margin-top:14px;max-width:88ch">Airborne and air assault doctrine builds five plans in reverse order. Each one constrains the next. For a FARP seizure the ground tactical plan starts with a question most air assaults never ask: can a Chinook full of fuel land here?</p>
-  <svg viewBox="0 0 1380 215" width="1380" height="215" style="margin-top:18px">
-    <path d="M1300 80 L 90 80" fill="none" stroke="var(--amber)" stroke-width="1.5" pathLength="1" class="draw" style="--d:.5s" marker-end="url(#arr)"/>
-    <g id="steps"></g>
-  </svg>
-  <div class="cols c3" style="margin-top:0;--cp:17px">
-    <div class="card a" style="--d:2.6s"><span class="tag">Planning events</span><h3>IPC · AMCM · AMB</h3><p>Initial planning conference, air mission coordination meeting, air mission brief. The aviation unit and the ground unit build one plan, not two.</p></div>
-    <div class="card a" style="--d:2.8s"><span class="tag">Pathfinders</span><h3>Make the zones real</h3><p>Select, mark and control landing and pickup zones, give inbound aircraft terminal guidance, and run the pickup zone when it is time to leave.</p></div>
-    <div class="card a" style="--d:3s"><span class="tag">Rehearsal</span><h3>Cold loads and leader certs</h3><p>Loading drills with the actual aircraft, leader certification, and rehearsals are how the company buys down the risk of operating 180 miles from help.</p></div>
+  <div class="a"><div class="eyebrow">Doctrine <span class="ph">how an air assault is planned</span></div><h2>Plan it <em>backward</em> from the objective.</h2></div>
+  <p class="a" style="--d:.3s;margin-top:12px;max-width:70ch">Airborne and air assault doctrine builds five plans in reverse order. Each one constrains the next. For a FARP seizure the ground tactical plan starts with a question most air assaults never ask: can a Chinook full of fuel land here?</p>
+  <div class="cols" style="grid-template-columns:repeat(5,1fr);margin-top:30px">
+    <div class="card a" style="--d:2.2s"><span class="tag amber">5</span><h3>Staging plan</h3><p>Who waits where, in what order.</p></div>
+    <div class="card a" style="--d:1.8s"><span class="tag amber">4</span><h3>Loading plan</h3><p>What goes on which aircraft.</p></div>
+    <div class="card a" style="--d:1.4s"><span class="tag amber">3</span><h3>Air movement plan</h3><p>Routes, timing, formation.</p></div>
+    <div class="card a" style="--d:1s"><span class="tag amber">2</span><h3>Landing plan</h3><p>Which zone, what heading, what order.</p></div>
+    <div class="card a hi" style="--d:.6s"><span class="tag amber">1</span><h3>Ground tactical plan</h3><p>What happens on the objective.</p></div>
+  </div>
+  <div class="bottom">
+    <div class="card a" style="--d:2.8s;flex:1"><span class="tag">Planning events</span><h3>IPC · AMCM · AMB</h3><p>Initial planning conference, air mission coordination meeting, air mission brief. The aviation unit and the ground unit build one plan, not two.</p></div>
+    <div class="card a" style="--d:3s;flex:1"><span class="tag">Pathfinders</span><h3>Make the zones real</h3><p>Select, mark and control landing and pickup zones, give inbound aircraft terminal guidance, and run the pickup zone when it is time to leave.</p></div>
+    <div class="card a" style="--d:3.2s;flex:1"><span class="tag">Rehearsal</span><h3>Cold loads and leader certs</h3><p>Loading drills on the actual aircraft, leader certification and rehearsals buy down the risk of operating 180 miles from help.</p></div>
   </div>
   <div class="foot"><span>FM 3-99 · reverse planning sequence</span><span>07</span></div>
 </section>
 
-<!-- 8 · PHASING OVERVIEW -->
-<section class="slide" data-t="22" data-cap="Four phases. Condition setting before wheels up. Air assault and seizure from wheels down to FARP seized at H plus one. FARP operations in the second hour. Defense runs underneath all of it until the site collapses and the force reconsolidates.">
-  <div class="eyebrow a">Phasing <span class="ph">overview</span></div>
-  <h2 class="a" style="--d:.1s">Four phases, <em>three hours on the ground.</em></h2>
-  <svg viewBox="0 0 1380 330" width="1380" height="330" style="margin-top:34px">
-    <line x1="60" y1="150" x2="1320" y2="150" stroke="var(--line)" stroke-width="2"/>
-    <rect x="60" y="146" width="1260" height="8" rx="4" fill="var(--amber)" class="grow" style="--d:.4s" opacity=".9"/>
-    <g font-family="var(--mono)">
-      <g class="a" style="--d:.5s"><line x1="60" y1="130" x2="60" y2="170" stroke="var(--fg)"/><text x="60" y="118" class="mid fg">Wheels up</text><text x="60" y="196" class="mid">H − 2:30</text></g>
-      <g class="a" style="--d:.9s"><line x1="420" y1="130" x2="420" y2="170" stroke="var(--fg)"/><text x="420" y="118" class="mid fg">Wheels down</text><text x="420" y="196" class="mid">H-hour</text></g>
-      <g class="a" style="--d:1.3s"><line x1="720" y1="130" x2="720" y2="170" stroke="var(--fg)"/><text x="720" y="118" class="mid fg">FARP seized</text><text x="720" y="196" class="mid">H + 1:00</text></g>
-      <g class="a" style="--d:1.7s"><line x1="1020" y1="130" x2="1020" y2="170" stroke="var(--fg)"/><text x="1020" y="118" class="mid fg">FARP ops complete</text><text x="1020" y="196" class="mid">H + 2:00</text></g>
-      <g class="a" style="--d:2.1s"><line x1="1320" y1="130" x2="1320" y2="170" stroke="var(--fg)"/><text x="1320" y="118" class="mid fg">Reconsolidated</text><text x="1320" y="196" class="mid">H + 3:00</text></g>
-    </g>
-    <g class="a" style="--d:.6s"><rect x="60" y="230" width="350" height="54" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="80" y="252" class="amber">Phase I</text><text x="80" y="272" class="big" style="font-size:17px">Condition setting</text></g>
-    <g class="a" style="--d:1s"><rect x="420" y="230" width="290" height="54" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="440" y="252" class="amber">Phase II</text><text x="440" y="272" class="big" style="font-size:17px">Air assault and seizure</text></g>
-    <g class="a" style="--d:1.4s"><rect x="720" y="230" width="290" height="54" rx="10" fill="rgba(244,185,74,.12)" stroke="var(--amber)"/><text x="740" y="252" class="amber">Phase III</text><text x="740" y="272" class="big" style="font-size:17px">FARP operations</text></g>
-    <g class="a" style="--d:1.8s"><rect x="1020" y="230" width="300" height="54" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="1040" y="252" class="amber">Collapse</text><text x="1040" y="272" class="big" style="font-size:17px">Jump, or reconsolidate</text></g>
-    <g class="a" style="--d:2.3s"><rect x="420" y="296" width="900" height="30" rx="8" fill="none" stroke="var(--sky)" stroke-dasharray="6 5"/><text x="870" y="316" class="mid sky">Phase IV · FARP defense runs the whole time the site is open</text></g>
-  </svg>
-  <div class="two" style="margin-top:28px;gap:40px">
-    <p class="a small" style="--d:2.6s">The CONOP names four phases by what the force is doing. The Storm Surge timeline adds the clock: about two and a half hours of flight, an hour to seize, an hour to fuel, an hour to get out. The defense phase is not a block of time. It begins the moment the first aircraft lands and ends when the last one leaves.</p>
-    <p class="a small" style="--d:2.8s">That compression is the design. A fuel point is loud, lit and predictable, so the concept keeps the window short. Everything in the following slides is about making each hour fit.</p>
+<!-- 8 PHASING -->
+<section class="slide" data-t="24" data-cap="Four phases. Condition setting before wheels up. Air assault and seizure from wheels down to FARP seized at H plus one. FARP operations in the second hour. Defense runs underneath all of it until the site collapses and the force reconsolidates.">
+  <div class="a"><div class="eyebrow">Phasing <span class="ph">overview</span></div><h2>Four phases, <em>three hours on the ground.</em></h2></div>
+  <div class="panel a" style="--d:.4s;margin-top:26px;padding:26px 30px 22px">
+    <svg viewBox="0 0 1380 150" width="100%" height="150" style="overflow:visible;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase">
+      <line x1="40" y1="70" x2="1340" y2="70" stroke="var(--line)" stroke-width="2"/>
+      <rect x="40" y="66" width="1300" height="8" rx="4" fill="var(--amber)" style="transform-origin:40px 70px;animation:growx 2.4s cubic-bezier(.3,.7,.2,1) .6s both"/>
+      <style>@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}</style>
+      <g fill="var(--fg)" text-anchor="middle">
+        <g class="a" style="--d:.6s"><line x1="40" y1="52" x2="40" y2="88" stroke="var(--fg)"/><text x="40" y="40">Wheels up</text><text x="40" y="112" fill="var(--mute)">H − 2:30</text></g>
+        <g class="a" style="--d:1.1s"><line x1="420" y1="52" x2="420" y2="88" stroke="var(--fg)"/><text x="420" y="40">Wheels down</text><text x="420" y="112" fill="var(--mute)">H-hour</text></g>
+        <g class="a" style="--d:1.6s"><line x1="730" y1="52" x2="730" y2="88" stroke="var(--fg)"/><text x="730" y="40">FARP seized</text><text x="730" y="112" fill="var(--mute)">H + 1:00</text></g>
+        <g class="a" style="--d:2.1s"><line x1="1035" y1="52" x2="1035" y2="88" stroke="var(--fg)"/><text x="1035" y="40">FARP ops complete</text><text x="1035" y="112" fill="var(--mute)">H + 2:00</text></g>
+        <g class="a" style="--d:2.6s"><line x1="1340" y1="52" x2="1340" y2="88" stroke="var(--fg)"/><text x="1340" y="40">Reconsolidated</text><text x="1340" y="112" fill="var(--mute)">H + 3:00</text></g>
+      </g>
+    </svg>
+    <div class="cols c4" style="margin-top:8px">
+      <div class="card a" style="--d:.8s;padding:14px 18px"><span class="tag amber">Phase I</span><h3 style="font-size:20px;margin-top:6px">Condition setting</h3></div>
+      <div class="card a" style="--d:1.3s;padding:14px 18px"><span class="tag amber">Phase II</span><h3 style="font-size:20px;margin-top:6px">Air assault and seizure</h3></div>
+      <div class="card a hi" style="--d:1.8s;padding:14px 18px"><span class="tag amber">Phase III</span><h3 style="font-size:20px;margin-top:6px">FARP operations</h3></div>
+      <div class="card a" style="--d:2.3s;padding:14px 18px"><span class="tag amber">Collapse</span><h3 style="font-size:20px;margin-top:6px">Jump, or reconsolidate</h3></div>
+    </div>
+    <div class="a" style="--d:2.8s;margin-top:12px;border:1px dashed rgba(121,212,255,.5);border-radius:10px;padding:8px 14px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);text-align:center">Phase IV · FARP defense runs the whole time the site is open</div>
+  </div>
+  <div class="bottom" style="gap:30px">
+    <p class="a small" style="--d:3.2s;flex:1">The CONOP names four phases by what the force is doing. The Storm Surge timeline adds the clock: about two and a half hours of flight, an hour to seize, an hour to fuel, an hour to get out. The defense phase is not a block of time. It begins when the first aircraft lands and ends when the last one leaves.</p>
+    <p class="a small" style="--d:3.4s;flex:1">That compression is the design. A fuel point is loud, lit and predictable, so the concept keeps the window short. Everything that follows is about making each hour fit.</p>
   </div>
   <div class="foot"><span>CONOP phasing · Storm Surge H-hour sequence</span><span>08</span></div>
 </section>
 
-<!-- 9 · PHASE I -->
-<section class="slide" data-t="24" data-cap="Phase one, condition setting. The site is chosen against the aircraft, the target and the enemy at once. The company and the aviation battalion plan together, cold-load the real aircraft, certify leaders, and rehearse.">
-  <div class="eyebrow a">Phase I <span class="ph">condition setting</span></div>
-  <h2 class="a" style="--d:.1s">Pick the ground the Chinook can land on, <em>then plan everything else.</em></h2>
-  <div class="two" style="grid-template-columns:1.05fr 1fr">
-    <svg viewBox="0 0 700 440" width="700" height="440">
-      <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="var(--line)" stroke-width=".8"/></pattern></defs>
-      <rect x="0" y="0" width="700" height="440" rx="18" fill="var(--bg2)" stroke="var(--line)"/>
-      <rect x="0" y="0" width="700" height="440" rx="18" fill="url(#grid)"/>
-      <!-- candidate sites -->
-      <g class="sweep" style="--d:.6s"><circle cx="170" cy="140" r="52" fill="rgba(121,212,255,.08)" stroke="var(--sky)" stroke-dasharray="6 5"/><text x="170" y="145" class="mid">Site A</text></g>
-      <g class="sweep" style="--d:.9s"><circle cx="440" cy="110" r="52" fill="rgba(121,212,255,.08)" stroke="var(--sky)" stroke-dasharray="6 5"/><text x="440" y="115" class="mid">Site B</text></g>
-      <g class="sweep" style="--d:1.2s"><circle cx="330" cy="300" r="52" fill="rgba(121,212,255,.08)" stroke="var(--sky)" stroke-dasharray="6 5"/><text x="330" y="305" class="mid">Site C</text></g>
-      <!-- rejections -->
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="3s" fill="freeze"/>
-        <text x="170" y="214" class="mid rose">Slope · trees on approach</text><line x1="140" y1="110" x2="200" y2="170" stroke="var(--rose)" stroke-width="2"/><line x1="200" y1="110" x2="140" y2="170" stroke="var(--rose)" stroke-width="2"/></g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="4s" fill="freeze"/>
-        <text x="440" y="184" class="mid rose">Too close to the road net</text><line x1="410" y1="80" x2="470" y2="140" stroke="var(--rose)" stroke-width="2"/><line x1="470" y1="80" x2="410" y2="140" stroke="var(--rose)" stroke-width="2"/></g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="5s" fill="freeze"/>
-        <circle cx="330" cy="300" r="52" fill="rgba(244,185,74,.14)" stroke="var(--amber)" stroke-width="2"/>
-        <circle cx="330" cy="300" r="70" fill="none" stroke="var(--amber)" class="ring" style="--d:5s"/>
-        <text x="330" y="305" class="mid amber">Selected</text>
-        <text x="330" y="372" class="mid fg">Flat · 260 m × 150 m · clear 090 approach</text>
-        <text x="330" y="392" class="mid">180–200 NM from the ISB · 100–150 NM to target</text></g>
-      <!-- approach arrow -->
-      <path d="M90 300 L 262 300" fill="none" stroke="var(--sky)" stroke-width="2" marker-end="url(#arr)"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="5.6s" fill="freeze"/></path>
-      <text x="90" y="286" class="sky"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="5.6s" fill="freeze"/>Inbound 090</text>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s">Key tasks: air assault planning and FARP site selection. The site has to satisfy three customers at once.</p>
-      <ul class="list">
-        <li class="a" style="--d:.6s"><div><b>The aircraft.</b> Size and surface for a CH-47 with fuel aboard, approach and departure headings clear of trees, slope and dust acceptable at night.</div></li>
-        <li class="a" style="--d:.8s"><div><b>The target.</b> Close enough that attack aircraft arrive with real station time, far enough that the fuel point is not on the objective.</div></li>
-        <li class="a" style="--d:1s"><div><b>The defense.</b> Few avenues of approach, cover for the perimeter, and a second site to jump to. Storm Surge plans three WETCOW sites across five locations.</div></li>
-      </ul>
-      <div class="kv a" style="--d:1.4s;margin-top:24px;font-size:16px">
-        <b>02 SEP</b><span>Plan · IPC #1 with 6-101 CAB</span>
-        <b>30 JUL</b><span>Train and certify · cold-load training, leader certification</span>
-        <b>08 OCT</b><span>Recon</span>
-        <b>23 OCT</b><span>Issue the plan · AMB</span>
-        <b>26 OCT</b><span>Rehearse</span>
-        <b>28 OCT</b><span>Execute · wheels up 2200Z</span>
-      </div>
+<!-- 9 PHASE I -->
+<section class="slide" data-t="26" data-cap="Phase one, condition setting. The site is chosen against the aircraft, the target and the enemy at once. Recon imagery of every zone, planning with the aviation battalion, cold loads on the real aircraft, leader certification and rehearsals.">
+  <div class="left" style="width:520px">
+    <div class="a"><div class="eyebrow">Phase I <span class="ph">condition setting</span></div><h2>Pick the ground the Chinook can land on, <em>then plan everything else.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p class="small">Key tasks: air assault planning and FARP site selection. The site has to satisfy three customers at once.</p>
+      <ul class="list" style="margin-top:14px;font-size:16px">
+        <li class="a" style="--d:3s"><div><b>The aircraft.</b> Size and surface for a CH-47 with fuel aboard, approach and departure headings clear of trees, slope and dust acceptable at night.</div></li>
+        <li class="a" style="--d:6s"><div><b>The target.</b> Close enough for real station time, far enough that the fuel point is not on the objective.</div></li>
+        <li class="a" style="--d:9s"><div><b>The defense.</b> Few avenues of approach, cover for the perimeter, and a second site to jump to. Storm Surge plans three WETCOW sites across five locations.</div></li>
+      </ul></div>
+    <div class="kv panel a" style="--d:12s;font-size:14px;gap:6px 16px;padding:18px 24px">
+      <b>02 SEP</b><span>Plan · IPC #1 with 6-101 CAB</span><b>30 JUL</b><span>Train and certify · cold loads, leader certification</span><b>08 OCT</b><span>Recon</span><b>23 OCT</b><span>Issue the plan · AMB</span><b>26 OCT</b><span>Rehearse</span><b>28 OCT</b><span>Execute · wheels up 2200Z</span>
     </div>
+  </div>
+  <div class="right" style="width:420px;top:150px;gap:14px">
+    <div class="photo kb a" style="--d:4s;aspect-ratio:16/9"><img src="assets/lz-vulture.jpg" alt="Oblique aerial photo of LZ Vulture"><div class="cap">Recon · LZ Vulture · inbound 158°</div></div>
+    <div class="photo kb a" style="--d:7s;aspect-ratio:16/9"><img src="assets/lz-owl.jpg" alt="Oblique aerial photo of LZ Owl"><div class="cap">Recon · LZ Owl · inbound 063°</div></div>
+    <div class="photo kb a" style="--d:10s;aspect-ratio:16/9"><img src="assets/pz-cedar.jpg" alt="Oblique aerial photo of PZ Cedar"><div class="cap">Selected · PZ Cedar · 260 m × 150 m · 090</div></div>
   </div>
   <div class="foot"><span>Phase I ends at wheels up</span><span>09</span></div>
 </section>
 
-<!-- 10 · PHASE II -->
-<section class="slide" data-t="34" data-cap="Phase two, air assault and seizure. Serials land on three zones. Team Isolate blocks the approaches. Team Seize takes the objective. The security squad and pathfinders set the pickup zone that will become the FARP. Seized no later than H plus one.">
-  <div class="eyebrow a">Phase II <span class="ph">air assault and seizure</span></div>
-  <h2 class="a" style="--d:.1s">Isolate. Seize. <em>Mark the ground.</em></h2>
-  <div class="two" style="grid-template-columns:1.25fr 1fr;gap:44px;margin-top:20px">
-    <svg viewBox="0 0 900 560" width="900" height="560">
-      <defs><clipPath id="mapclip"><rect x="0" y="0" width="900" height="560" rx="18"/></clipPath></defs>
-      <rect x="0" y="0" width="900" height="560" rx="18" fill="var(--bg2)" stroke="var(--line)"/>
-      <g clip-path="url(#mapclip)">
-      <!-- phase lines -->
-      <g class="ax" style="--d:.2s">
-        <line x1="0" y1="70" x2="900" y2="70" class="pl"/><text x="14" y="60" class="amber">PL Maine</text>
-        <line x1="0" y1="310" x2="900" y2="310" class="pl"/><text x="14" y="300" class="amber">PL New York</text>
-        <path d="M0 440 L 260 470 L 900 470" class="pl"/><text x="14" y="430" class="amber">PL Maryland</text>
-        <line x1="200" y1="0" x2="200" y2="560" class="pl v"/><text x="208" y="26">PL Denver</text>
-        <line x1="560" y1="0" x2="560" y2="560" class="pl v"/><text x="568" y="26">PL Chicago</text>
-        <line x1="830" y1="0" x2="830" y2="560" class="pl v"/><text x="838" y="26">PL Baltimore</text>
-      </g>
-      <!-- objectives and zones -->
-      <g class="ax" style="--d:.6s">
-        <rect x="380" y="118" width="110" height="56" rx="6" class="obj"/><text x="435" y="150" class="mid rose">OBJ Husky</text>
-        <rect x="600" y="330" width="110" height="56" rx="6" class="obj"/><text x="655" y="362" class="mid rose">OBJ Poodle</text>
-        <rect x="250" y="490" width="120" height="56" rx="6" class="obj"/><text x="310" y="522" class="mid rose">OBJ Bernese</text>
-        <ellipse cx="430" cy="235" rx="44" ry="26" class="lz"/><text x="430" y="275" class="mid sky">LZ Vulture</text>
-        <ellipse cx="600" cy="300" rx="34" ry="22" class="lz"/><text x="600" y="268" class="mid sky">LZ Falcon</text>
-        <ellipse cx="400" cy="462" rx="44" ry="26" class="lz"/><text x="456" y="467" class="sky">LZ Owl</text>
-        <rect x="270" y="330" width="90" height="52" rx="6" fill="none" stroke="var(--amber)" stroke-dasharray="5 4"/><text x="315" y="400" class="mid amber">PZ Cedar</text>
-        <text x="470" y="385" class="mid">DZ Tang</text>
-      </g>
-      <!-- flight routes -->
-      <path id="rV" d="M300 -40 L 430 235" fill="none"/>
-      <path id="rF" d="M520 -40 L 600 300" fill="none"/>
-      <path id="rO" d="M120 600 L 400 462" fill="none"/>
-      <path d="M300 -40 L 430 235" class="route" pathLength="1"><animate attributeName="stroke-dashoffset" from="1" to="0" dur="1.8s" begin="1.5s" fill="freeze"/></path>
-      <path d="M520 -40 L 600 300" class="route" pathLength="1"><animate attributeName="stroke-dashoffset" from="1" to="0" dur="1.8s" begin="2.2s" fill="freeze"/></path>
-      <path d="M120 600 L 400 462" class="route" pathLength="1"><animate attributeName="stroke-dashoffset" from="1" to="0" dur="1.8s" begin="2.9s" fill="freeze"/></path>
-      <text x="330" y="120" class="sky"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="2s" fill="freeze"/>158°</text>
-      <text x="640" y="200" class="sky"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="2.7s" fill="freeze"/>155°</text>
-      <text x="150" y="522" class="sky"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="3.4s" fill="freeze"/>063°</text>
-      <g style="color:var(--sky2)">
-        <use href="#ch47" width="50" height="36" x="-25" y="-18"><animateMotion dur="2.4s" begin="1.5s" fill="freeze" rotate="auto"><mpath href="#rV"/></animateMotion></use>
-        <use href="#ch47" width="50" height="36" x="-25" y="-18"><animateMotion dur="2.4s" begin="1.9s" fill="freeze" rotate="auto"><mpath href="#rV"/></animateMotion></use>
-        <use href="#uh60" width="40" height="26" x="-20" y="-13"><animateMotion dur="2.4s" begin="2.2s" fill="freeze" rotate="auto"><mpath href="#rF"/></animateMotion></use>
-        <use href="#ch47" width="50" height="36" x="-25" y="-18"><animateMotion dur="2.4s" begin="2.9s" fill="freeze" rotate="auto"><mpath href="#rO"/></animateMotion></use>
-        <use href="#ch47" width="50" height="36" x="-25" y="-18"><animateMotion dur="2.4s" begin="3.3s" fill="freeze" rotate="auto"><mpath href="#rO"/></animateMotion></use>
-      </g>
-      <!-- ground movement -->
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="6s" fill="freeze"/>
-        <path d="M430 210 L 435 180" class="gnd" marker-end="url(#arr)" pathLength="1"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1s" begin="6s" fill="freeze"/></path>
-        <path d="M395 240 L 240 265" class="gnd" marker-end="url(#arr)" pathLength="1"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1.2s" begin="6.2s" fill="freeze"/></path>
-        <path d="M615 318 L 650 335" class="gnd" marker-end="url(#arr)" pathLength="1"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1s" begin="6.4s" fill="freeze"/></path>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="7.4s" fill="freeze"/>
-        <rect x="220" y="248" width="44" height="30" rx="4" fill="var(--panel2)" stroke="var(--fg)"/><text x="242" y="268" class="mid fg" style="font-size:11px">BP 1</text>
-        <rect x="412" y="92" width="44" height="24" rx="4" fill="var(--panel2)" stroke="var(--fg)"/><text x="434" y="109" class="mid fg" style="font-size:11px">BP 2</text>
-        <rect x="690" y="394" width="44" height="24" rx="4" fill="var(--panel2)" stroke="var(--fg)"/><text x="712" y="411" class="mid fg" style="font-size:11px">BP 3</text>
-        <text x="40" y="262" class="fg">TM Isolate</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="8.6s" fill="freeze"/>
-        <path d="M380 480 L 330 500" stroke="var(--amber)" stroke-width="2.4" fill="none" marker-end="url(#arr)" pathLength="1"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1s" begin="8.6s" fill="freeze"/></path>
-        <text x="440" y="520" class="amber">TM Seize</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="10s" fill="freeze"/>
-        <rect x="250" y="490" width="120" height="56" rx="6" fill="rgba(139,227,176,.14)" stroke="var(--mint)" stroke-width="2"/><text x="310" y="522" class="mid" style="fill:var(--mint)">Seized</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="11s" fill="freeze"/>
-        <path d="M380 445 L 330 385" class="gnd" marker-end="url(#arr)" pathLength="1" stroke="var(--amber)"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1s" begin="11s" fill="freeze"/></path>
-        <text x="160" y="360" class="amber">Security squad</text><text x="160" y="378">+ pathfinders</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="12.4s" fill="freeze"/>
-        <rect x="270" y="330" width="90" height="52" rx="6" fill="rgba(244,185,74,.18)" stroke="var(--amber)" stroke-width="2"/>
-        <circle cx="285" cy="345" r="3" fill="var(--amber2)" class="pulse"/><circle cx="345" cy="345" r="3" fill="var(--amber2)" class="pulse" style="--d:.4s"/><circle cx="285" cy="367" r="3" fill="var(--amber2)" class="pulse" style="--d:.8s"/><circle cx="345" cy="367" r="3" fill="var(--amber2)" class="pulse" style="--d:1.2s"/>
-        <text x="315" y="420" class="mid fg">Marked · inbound 090 · H+1:00</text>
-      </g>
-      </g>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s">Key tasks: ground task force air assault (Lift 1), FARP seizure, pathfinder operations. Night landing, land navigation, seize.</p>
-      <ol class="list" style="margin-top:22px" id="p2steps">
-        <li class="a" style="--d:1.5s"><div><b>H-hour. Wheels down.</b> Serials land on three zones on their briefed headings, weapons free, trees the hazard.</div></li>
-        <li class="a" style="--d:6s"><div><b>Isolate.</b> Team Isolate moves from LZ Vulture and LZ Falcon to blocking positions on the avenues into the site.</div></li>
-        <li class="a" style="--d:8.6s"><div><b>Seize.</b> Team Seize moves from LZ Owl and takes OBJ Bernese, the ground the fuel point needs.</div></li>
-        <li class="a" style="--d:11s"><div><b>Mark.</b> The security squad and pathfinders establish PZ Cedar: lights, headings, a control point. The seizure is reported no later than H+1:00.</div></li>
-      </ol>
-      <p class="a small" style="--d:13s;margin-top:22px">Team-to-zone assignments shown here follow the landing zone and assembly area pairings in the brief and are illustrative. Chalk assignments come from the air mission brief.</p>
-    </div>
+<!-- 10 PHASE II -->
+<section class="slide" data-t="52" data-cap="Phase two, air assault and seizure. Serials land on three zones. Team Isolate blocks the approaches. Team Seize takes the objective. The security squad and pathfinders set the pickup zone that will become the FARP. Seized no later than H plus one.">
+  <div class="left" style="width:500px">
+    <div class="a"><div class="eyebrow">Phase II <span class="ph">air assault and seizure</span></div><h2>Isolate. Seize. <em>Mark the ground.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p class="small">Key tasks: ground task force air assault (Lift 1), FARP seizure, pathfinder operations. Night landing, land navigation, seize.</p>
+      <ol class="list" style="margin-top:14px;font-size:16px">
+        <li class="a" style="--d:3s"><div><b>H-hour. Wheels down.</b> Serials land on Vulture, Falcon and Owl on their briefed headings, weapons free, trees the hazard.</div></li>
+        <li class="a" style="--d:20s"><div><b>Isolate.</b> Team Isolate moves from Vulture and Falcon to blocking positions on the avenues into the site.</div></li>
+        <li class="a" style="--d:28s"><div><b>Seize.</b> Team Seize moves from Owl and takes OBJ Bernese, the ground the fuel point needs.</div></li>
+        <li class="a" style="--d:38s"><div><b>Mark.</b> The security squad and pathfinders establish PZ Cedar: lights, headings, a control point. Seized no later than H+1:00.</div></li>
+      </ol></div>
+    <p class="a small" style="--d:44s;padding:0 6px;font-size:14px">Team-to-zone assignments follow the landing zone and assembly area pairings in the brief and are illustrative. Chalks come from the air mission brief.</p>
   </div>
   <div class="foot"><span>Alternate: LZ Dove · PZ Birch</span><span>10</span></div>
 </section>
 
-<!-- 11 · PHASE III -->
-<section class="slide" data-t="32" data-cap="Phase three, FARP operations. The second lift lands the fuel: a Chinook carrying extended range fuel tanks, with the fuel handlers, engineers, mortars and scouts. The attack aircraft land, fuel and arm, and depart for the target with a full tank. One hour.">
-  <div class="eyebrow a">Phase III <span class="ph">FARP operations</span></div>
-  <h2 class="a" style="--d:.1s">The Chinook is the <em>gas station.</em></h2>
-  <div class="two" style="grid-template-columns:1.25fr 1fr;gap:44px;margin-top:20px">
-    <svg viewBox="0 0 900 560" width="900" height="560">
-      <rect x="0" y="0" width="900" height="560" rx="18" fill="var(--bg2)" stroke="var(--line)"/>
-      <!-- the PZ -->
-      <g class="ax" style="--d:.2s">
-        <rect x="150" y="150" width="620" height="280" rx="10" fill="none" stroke="var(--amber)" stroke-dasharray="6 5"/>
-        <text x="160" y="140" class="amber">PZ Cedar · 260 m × 150 m · inbound 090 · staggered left</text>
-        <text x="760" y="452" style="text-anchor:end">Weapons tight on the zone</text>
-        <circle cx="180" cy="180" r="3" fill="var(--amber2)" class="pulse"/><circle cx="740" cy="180" r="3" fill="var(--amber2)" class="pulse" style="--d:.5s"/><circle cx="180" cy="400" r="3" fill="var(--amber2)" class="pulse" style="--d:1s"/><circle cx="740" cy="400" r="3" fill="var(--amber2)" class="pulse" style="--d:1.5s"/>
-      </g>
-      <!-- lift 2 -->
-      <path id="f1" d="M-60 290 L 300 290" fill="none"/>
-      <path id="f2" d="M-60 400 L 300 400" fill="none"/>
-      <g style="color:var(--amber2)">
-        <use href="#ch47" width="110" height="78" x="-55" y="-39"><animateMotion dur="2.6s" begin=".8s" fill="freeze" rotate="auto"><mpath href="#f1"/></animateMotion></use>
-      </g>
-      <g style="color:var(--sky2)">
-        <use href="#ch47" width="110" height="78" x="-55" y="-39"><animateMotion dur="2.6s" begin="1.3s" fill="freeze" rotate="auto"><mpath href="#f2"/></animateMotion></use>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="3.6s" fill="freeze"/>
-        <text x="300" y="248" class="mid amber">FATCOW · fuel aboard</text><text x="300" y="460" class="mid sky">PAX · engineers, mortars, scouts, 1 ISV</text>
-      </g>
-      <!-- hoses to refuel points -->
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".3s" begin="4.4s" fill="freeze"/>
-        <path d="M355 290 C 420 290, 440 220, 520 220" fill="none" stroke="var(--amber)" stroke-width="3" pathLength="1"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1.2s" begin="4.4s" fill="freeze"/></path>
-        <path d="M355 290 C 420 290, 440 360, 520 360" fill="none" stroke="var(--amber)" stroke-width="3" pathLength="1"><animate attributeName="stroke-dasharray" values="0 1;1 0" dur="1.2s" begin="4.7s" fill="freeze"/></path>
-        <circle cx="540" cy="220" r="26" fill="rgba(244,185,74,.1)" stroke="var(--amber)" stroke-dasharray="4 3"/><text x="540" y="186" class="mid amber">Point 1</text>
-        <circle cx="540" cy="360" r="26" fill="rgba(244,185,74,.1)" stroke="var(--amber)" stroke-dasharray="4 3"/><text x="540" y="406" class="mid amber">Point 2</text>
-      </g>
-      <!-- fuel handlers -->
-      <g style="color:var(--fg)"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="5.4s" fill="freeze"/>
-        <use href="#pax" width="10" height="14" x="500" y="248"/><use href="#pax" width="10" height="14" x="500" y="330"/><use href="#pax" width="10" height="14" x="365" y="300"/><use href="#pax" width="10" height="14" x="365" y="270"/>
-        <text x="500" y="294" class="mid">Echo / 6-101</text>
-      </g>
-      <!-- lift 3 arrives -->
-      <path id="a1" d="M-60 180 L 540 220" fill="none"/>
-      <path id="a2" d="M-60 440 L 540 360" fill="none"/>
-      <path id="a3" d="M540 220 L 960 160" fill="none"/>
-      <path id="a4" d="M540 360 L 960 300" fill="none"/>
-      <g style="color:var(--sky2)">
-        <use href="#ah64" width="60" height="34" x="-30" y="-17"><animateMotion dur="2.6s" begin="7s" fill="freeze" rotate="auto"><mpath href="#a1"/></animateMotion><animateMotion dur="2.2s" begin="16s" fill="freeze" rotate="auto"><mpath href="#a3"/></animateMotion></use>
-        <use href="#ah64" width="60" height="34" x="-30" y="-17"><animateMotion dur="2.6s" begin="7.5s" fill="freeze" rotate="auto"><mpath href="#a2"/></animateMotion><animateMotion dur="2.2s" begin="16.4s" fill="freeze" rotate="auto"><mpath href="#a4"/></animateMotion></use>
-      </g>
-      <!-- fuel gauges -->
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="10s" fill="freeze"/>
-        <rect x="600" y="196" width="14" height="48" rx="4" fill="none" stroke="var(--line)"/><rect x="602" y="198" width="10" height="44" rx="3" fill="var(--amber)"><animate attributeName="height" from="8" to="44" dur="4.5s" begin="10s" fill="freeze"/><animate attributeName="y" from="234" to="198" dur="4.5s" begin="10s" fill="freeze"/></rect>
-        <rect x="600" y="336" width="14" height="48" rx="4" fill="none" stroke="var(--line)"/><rect x="602" y="338" width="10" height="44" rx="3" fill="var(--amber)"><animate attributeName="height" from="8" to="44" dur="4.5s" begin="10.5s" fill="freeze"/><animate attributeName="y" from="374" to="338" dur="4.5s" begin="10.5s" fill="freeze"/></rect>
-        <text x="640" y="226">Fuel</text><text x="640" y="366">Fuel</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="15s" fill="freeze"/>
-        <text x="640" y="250" class="mint">Armed · full</text><text x="640" y="390" class="mint">Armed · full</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".5s" begin="17s" fill="freeze"/>
-        <text x="880" y="120" class="rose" style="text-anchor:end">To the deep target · 100–150 NM →</text>
-      </g>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s">Key tasks: FARP task force air assault (Lift 2), FARP establishment, deep attack air assault (Lift 3). Pathfinders run the zone.</p>
-      <ol class="list" style="margin-top:22px">
-        <li class="a" style="--d:1s"><div><b>H+1:00. Lift 2 lands.</b> The fuel Chinook and the task force Chinook arrive on the marked zone with the fuel handlers, engineers, mortars and scouts.</div></li>
-        <li class="a" style="--d:4.4s"><div><b>Establish.</b> Hoses out to two refuel points. Echo company's handlers from 6-101 run the points; the security squad holds the zone.</div></li>
-        <li class="a" style="--d:7s"><div><b>Lift 3 lands.</b> Attack aircraft arrive on the points, fuel and arm with rotors turning.</div></li>
-        <li class="a" style="--d:16s"><div><b>Turn forward.</b> They depart for the target with a full tank. FARP operations complete by H+2:00.</div></li>
-      </ol>
-      <div class="stats a" style="--d:18s;margin-top:26px;gap:40px">
-        <div class="stat"><div class="v">60<span>NM</span></div><div class="l">Extra attack reach a WETCOW bought in Storm Surge</div></div>
-        <div class="stat"><div class="v">185<span>NM</span></div><div class="l">Flown with no refuel using the range tanks</div></div>
-      </div>
-    </div>
+<!-- 11 PHASE III -->
+<section class="slide" data-t="46" data-cap="Phase three, FARP operations. The second lift lands the fuel: a Chinook carrying extended range fuel tanks, with the fuel handlers, engineers, mortars and scouts. The attack aircraft land, fuel and arm, and depart for the target with a full tank. One hour.">
+  <div class="left" style="width:500px">
+    <div class="a"><div class="eyebrow">Phase III <span class="ph">FARP operations</span></div><h2>The Chinook is the <em>gas station.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p class="small">Key tasks: FARP task force air assault (Lift 2), FARP establishment, deep attack air assault (Lift 3). Pathfinders run the zone.</p>
+      <ol class="list" style="margin-top:14px;font-size:16px">
+        <li class="a" style="--d:2s"><div><b>H+1:00. Lift 2 lands.</b> The fuel Chinook and the task force Chinook arrive on the marked zone.</div></li>
+        <li class="a" style="--d:12s"><div><b>Establish.</b> Hoses out to two refuel points. Echo company's handlers run the points; the security squad holds the zone.</div></li>
+        <li class="a" style="--d:18s"><div><b>Lift 3 lands.</b> Attack aircraft arrive on the points, fuel and arm with rotors turning.</div></li>
+        <li class="a" style="--d:34s"><div><b>Turn forward.</b> They depart for the target with a full tank. FARP operations complete by H+2:00.</div></li>
+      </ol></div>
+  </div>
+  <div class="right" style="width:400px;top:auto;bottom:84px;gap:14px">
+    <div class="photo a" style="--d:6s;background:#fff;padding:10px"><img src="assets/loadplan.png" alt="CH-47 load plan with one extended range fuel system tank and troop seating" style="object-fit:contain"><div class="cap" style="color:#fff">CH-47 load plan · 1× ERFS forward · PAX aft</div></div>
+    <div class="panel a" style="--d:36s;display:flex;gap:26px"><div class="stat"><div class="v">60<span>NM</span></div><div class="l">Extra attack reach a WETCOW bought in Storm Surge</div></div><div class="stat"><div class="v">185<span>NM</span></div><div class="l">Flown with no refuel using the range tanks</div></div></div>
   </div>
   <div class="foot"><span>Phase III · H+1:00 to H+2:00</span><span>11</span></div>
 </section>
 
-<!-- 12 · PHASE IV -->
-<section class="slide" data-t="26" data-cap="Phase four, defense. A fuel point is loud, lit and predictable. The defense is isolation plus speed: blocking positions on the approaches, mortars and scouts on the likely threat, engineers on the obstacles, and a communications plan that reaches home from 180 miles out.">
-  <div class="eyebrow a">Phase IV <span class="ph">FARP defense</span></div>
-  <h2 class="a" style="--d:.1s">Loud, lit and predictable. <em>So keep it short and keep them off it.</em></h2>
-  <div class="two" style="grid-template-columns:1fr 1.1fr;gap:44px;margin-top:20px">
-    <svg viewBox="0 0 700 560" width="700" height="560">
-      <rect x="0" y="0" width="700" height="560" rx="18" fill="var(--bg2)" stroke="var(--line)"/>
-      <!-- avenues of approach -->
-      <g class="ax" style="--d:.3s">
-        <path d="M350 0 L 350 190" stroke="var(--rose)" stroke-width="10" opacity=".18" stroke-linecap="round"/>
-        <path d="M0 400 L 200 330" stroke="var(--rose)" stroke-width="10" opacity=".18" stroke-linecap="round"/>
-        <path d="M700 420 L 500 340" stroke="var(--rose)" stroke-width="10" opacity=".18" stroke-linecap="round"/>
-        <text x="365" y="40" class="rose">Avenue 1</text><text x="20" y="430" class="rose">Avenue 2</text><text x="560" y="450" class="rose">Avenue 3</text>
-      </g>
-      <!-- the farp -->
-      <g class="sweep" style="--d:.6s">
-        <rect x="290" y="250" width="120" height="70" rx="8" fill="rgba(244,185,74,.16)" stroke="var(--amber)" stroke-width="2"/>
-        <text x="350" y="290" class="mid amber">FARP</text>
-        <circle cx="350" cy="285" r="150" fill="none" stroke="var(--line)" stroke-dasharray="4 6"/>
-      </g>
-      <!-- sectors -->
-      <g class="sweep" style="--d:1.2s"><path d="M350 285 L 250 120 A 190 190 0 0 1 450 120 Z" fill="rgba(121,212,255,.07)" stroke="var(--sky)" stroke-width="1"/><rect x="322" y="150" width="56" height="26" rx="4" fill="var(--panel2)" stroke="var(--fg)"/><text x="350" y="168" class="mid fg" style="font-size:11px">BP 2</text></g>
-      <g class="sweep" style="--d:1.5s"><path d="M350 285 L 165 390 A 190 190 0 0 1 180 215 Z" fill="rgba(121,212,255,.07)" stroke="var(--sky)" stroke-width="1"/><rect x="185" y="300" width="56" height="26" rx="4" fill="var(--panel2)" stroke="var(--fg)"/><text x="213" y="318" class="mid fg" style="font-size:11px">BP 1</text></g>
-      <g class="sweep" style="--d:1.8s"><path d="M350 285 L 520 215 A 190 190 0 0 1 535 390 Z" fill="rgba(121,212,255,.07)" stroke="var(--sky)" stroke-width="1"/><rect x="470" y="300" width="56" height="26" rx="4" fill="var(--panel2)" stroke="var(--fg)"/><text x="498" y="318" class="mid fg" style="font-size:11px">BP 3</text></g>
-      <!-- mortars, scouts, sappers, c2 -->
-      <g class="a" style="--d:2.4s"><circle cx="350" cy="420" r="16" fill="var(--panel2)" stroke="var(--fg)"/><text x="350" y="425" class="mid fg" style="font-size:11px">MTR</text><text x="350" y="456" class="mid">Mortars · DOG 7</text></g>
-      <g class="a" style="--d:2.7s"><circle cx="350" cy="80" r="8" fill="var(--panel2)" stroke="var(--sky)"/><text x="375" y="84" class="sky">OP · scouts</text><circle cx="110" cy="440" r="8" fill="var(--panel2)" stroke="var(--sky)"/><text x="125" y="470" class="sky">OP</text><circle cx="600" cy="470" r="8" fill="var(--panel2)" stroke="var(--sky)"/><text x="560" y="500" class="sky">OP</text></g>
-      <g class="a" style="--d:3s"><path d="M320 200 l 10 -8 l 10 8 l 10 -8 l 10 8 l 10 -8 l 10 8" fill="none" stroke="var(--mint)" stroke-width="2"/><text x="385" y="206" style="fill:var(--mint)">Obstacle · sappers</text></g>
-      <g class="a" style="--d:3.3s"><rect x="250" y="340" width="56" height="30" rx="4" fill="var(--panel2)" stroke="var(--amber)"/><text x="278" y="359" class="mid amber" style="font-size:11px">C2</text><text x="312" y="366">NOMAD · DOG 6</text></g>
-      <!-- threat probes -->
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.8;1" dur="4s" begin="4s" fill="freeze"/>
-        <circle cx="350" cy="20" r="6" fill="var(--rose)"><animate attributeName="cy" from="10" to="110" dur="3s" begin="4s" fill="freeze"/></circle>
-        <text x="420" y="110" class="rose"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".4s" begin="6s" fill="freeze"/>Seen by the OP, fixed by BP 2, fires from the mortars</text>
-      </g>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s">Key task: defend the FARP. The defense is not a perimeter around the fuel. It is the isolation Team Isolate built in Phase II, held for as long as the window is open.</p>
-      <ul class="list">
-        <li class="a" style="--d:.8s"><div><b>Block the avenues.</b> Three blocking positions on the likely approaches, tied to the obstacles the sappers emplace.</div></li>
-        <li class="a" style="--d:1.1s"><div><b>See first.</b> Scout observation posts beyond the blocking positions. Fire support observers with the mortars.</div></li>
-        <li class="a" style="--d:1.4s"><div><b>Respond fast.</b> The mortar section is the company's own indirect fire. Attack aircraft on the points are a last resort, not the plan.</div></li>
-        <li class="a" style="--d:1.7s"><div><b>Talk home.</b> Primary, alternate, contingency and emergency: encrypted messaging over tactical satellite, then the team awareness kit, then a satellite voice net, then cell or high frequency.</div></li>
-      </ul>
-      <div class="card a" style="--d:2.2s;margin-top:24px;padding:18px 22px"><p class="small"><strong>The jump trigger.</strong> If the site is compromised, or the second fuel site is better placed for the next turn, the FARP displaces. That is the difference between a jump FARP and an active one: it is planned to move before it has to.</p></div>
-    </div>
+<!-- 12 PHASE IV -->
+<section class="slide" data-t="30" data-cap="Phase four, defense. A fuel point is loud, lit and predictable. The defense is isolation plus speed: blocking positions on the approaches, mortars and scouts on the likely threat, engineers on the obstacles, and a communications plan that reaches home from 180 miles out.">
+  <div class="left" style="width:520px">
+    <div class="a"><div class="eyebrow">Phase IV <span class="ph">FARP defense</span></div><h2>Loud, lit and predictable. <em>Keep it short, keep them off it.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p class="small">Key task: defend the FARP. The defense is not a perimeter around the fuel. It is the isolation Team Isolate built in Phase II, held for as long as the window is open.</p>
+      <ul class="list" style="margin-top:14px;font-size:16px">
+        <li class="a" style="--d:3s"><div><b>Block the avenues.</b> Three blocking positions on the likely approaches, tied to the obstacles the sappers emplace.</div></li>
+        <li class="a" style="--d:6s"><div><b>See first.</b> Scout observation posts beyond the blocking positions. Fire support observers with the mortars.</div></li>
+        <li class="a" style="--d:9s"><div><b>Respond fast.</b> The mortar section is the company's own indirect fire. Aircraft on the points are a last resort, not the plan.</div></li>
+        <li class="a" style="--d:12s"><div><b>Talk home.</b> Primary, alternate, contingency, emergency: encrypted messaging over tactical satellite, then the team awareness kit, then a satellite voice net, then cell or HF.</div></li>
+      </ul></div>
+    <div class="card a" style="--d:18s;padding:14px 20px"><p class="small"><strong>The jump trigger.</strong> If the site is compromised, or the second fuel site is better placed for the next turn, the FARP displaces. A jump FARP is planned to move before it has to.</p></div>
   </div>
   <div class="foot"><span>Phase IV runs from first landing to last departure</span><span>12</span></div>
 </section>
 
-<!-- 13 · COLLAPSE -->
-<section class="slide" data-t="20" data-cap="Then it closes. Fuel complete at H plus two. Pathfinders run the pickup zone. The force lifts out through PZ Cedar and is reconsolidated at home station by H plus three. The site goes dark and the aircraft it fueled are already over the target.">
-  <div class="eyebrow a">Collapse <span class="ph">H+2:00 to H+3:00</span></div>
-  <h2 class="a" style="--d:.1s">The site goes dark. <em>The attack is already deep.</em></h2>
-  <div class="two" style="grid-template-columns:1.2fr 1fr;gap:44px;margin-top:20px">
-    <svg viewBox="0 0 900 520" width="900" height="520">
-      <rect x="0" y="0" width="900" height="520" rx="18" fill="var(--bg2)" stroke="var(--line)"/>
-      <rect x="150" y="150" width="620" height="260" rx="10" fill="rgba(244,185,74,.10)" stroke="var(--amber)" stroke-dasharray="6 5"><animate attributeName="fill" from="rgba(244,185,74,.10)" to="rgba(244,185,74,0)" dur="3s" begin="7s" fill="freeze"/><animate attributeName="stroke-opacity" from="1" to=".2" dur="3s" begin="7s" fill="freeze"/></rect>
-      <text x="160" y="140" class="amber">PZ Cedar · pathfinders control the pickup</text>
-      <g style="color:var(--fg)"><animate attributeName="opacity" from="1" to="0" dur="1s" begin="5s" fill="freeze"/>
-        <use href="#pax" width="10" height="14" x="300" y="220"/><use href="#pax" width="10" height="14" x="318" y="220"/><use href="#pax" width="10" height="14" x="336" y="220"/><use href="#pax" width="10" height="14" x="354" y="220"/>
-        <use href="#pax" width="10" height="14" x="300" y="330"/><use href="#pax" width="10" height="14" x="318" y="330"/><use href="#pax" width="10" height="14" x="336" y="330"/><use href="#pax" width="10" height="14" x="354" y="330"/>
-        <text x="330" y="270" class="mid">Chalk 1 · staged</text><text x="330" y="380" class="mid">Chalk 2 · staged</text>
-      </g>
-      <path id="x1" d="M-80 230 L 420 230 L 980 120" fill="none"/>
-      <path id="x2" d="M-80 340 L 420 340 L 980 230" fill="none"/>
-      <g style="color:var(--sky2)">
-        <use href="#ch47" width="100" height="70" x="-50" y="-35"><animateMotion dur="7s" begin="1s" fill="freeze" rotate="auto" keyPoints="0;.47;.47;1" keyTimes="0;.3;.6;1" calcMode="linear"><mpath href="#x1"/></animateMotion></use>
-        <use href="#ch47" width="100" height="70" x="-50" y="-35"><animateMotion dur="7s" begin="1.5s" fill="freeze" rotate="auto" keyPoints="0;.47;.47;1" keyTimes="0;.3;.6;1" calcMode="linear"><mpath href="#x2"/></animateMotion></use>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="8.5s" fill="freeze"/>
-        <text x="460" y="470" class="mid fg">Site clear · nothing left behind · reconsolidated H+3:00</text>
-      </g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="4s" fill="freeze"/>
-        <text x="860" y="70" class="rose" style="text-anchor:end">Deep attack on the objective →</text>
-      </g>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s">Storm Surge's fifth phase, reconsolidation, is what makes this a jump FARP rather than a base. The fuel point exists for one turn of the attack and then it is gone.</p>
-      <ul class="list">
-        <li class="a" style="--d:.8s"><div><b>H+2:00.</b> FARP operations complete. Hoses in, points closed, the Chinook with the tanks lifts first.</div></li>
-        <li class="a" style="--d:1.1s"><div><b>Pickup zone.</b> Pathfinders control the pickup: chalks staged, aircraft inbound on 090, staggered left, weapons tight.</div></li>
-        <li class="a" style="--d:1.4s"><div><b>Collapse the isolation.</b> Blocking positions fold in last, in reverse order, under the mortars until the mortars themselves lift.</div></li>
-        <li class="a" style="--d:1.7s"><div><b>H+3:00.</b> Reconsolidated at home station, with full accountability of people and equipment as the friendly end state.</div></li>
-      </ul>
-    </div>
+<!-- 13 COLLAPSE -->
+<section class="slide" data-t="28" data-cap="Then it closes. Fuel complete at H plus two. Pathfinders run the pickup zone. The force lifts out through PZ Cedar and is reconsolidated at home station by H plus three. The site goes dark and the aircraft it fueled are already over the target.">
+  <div class="left" style="width:520px">
+    <div class="a"><div class="eyebrow">Collapse <span class="ph">H+2:00 to H+3:00</span></div><h2>The site goes dark. <em>The attack is already deep.</em></h2></div>
+    <div class="panel a" style="--d:.4s"><p class="small">Storm Surge's fifth phase, reconsolidation, is what makes this a jump FARP rather than a base. The fuel point exists for one turn of the attack and then it is gone.</p>
+      <ul class="list" style="margin-top:14px;font-size:16px">
+        <li class="a" style="--d:2s"><div><b>H+2:00.</b> FARP operations complete. Hoses in, points closed, the Chinook with the tanks lifts first.</div></li>
+        <li class="a" style="--d:8s"><div><b>Pickup zone.</b> Pathfinders control the pickup: chalks staged, aircraft inbound on 090, staggered left, weapons tight.</div></li>
+        <li class="a" style="--d:14s"><div><b>Collapse the isolation.</b> Blocking positions fold in last, in reverse order, under the mortars until the mortars themselves lift.</div></li>
+        <li class="a" style="--d:20s"><div><b>H+3:00.</b> Reconsolidated at home station, with full accountability of people and equipment as the friendly end state.</div></li>
+      </ul></div>
   </div>
   <div class="foot"><span>Reconsolidation · Storm Surge Phase 5</span><span>13</span></div>
 </section>
 
-<!-- 14 · RISK -->
-<section class="slide" data-t="18" data-cap="The risk is the point. A company minus, 180 miles from support, with what it can carry. The mitigations are deliberate: rehearsals, leader certification, rations carried on the aircraft, and a proof-of-concept run before anyone bets a deep attack on it.">
-  <div class="eyebrow a">Risk <span class="ph">and what buys it down</span></div>
-  <h2 class="a" style="--d:.1s">A company, alone, <em>180 miles out.</em></h2>
-  <div class="cols c3" style="margin-top:34px">
+<!-- 14 RISK -->
+<section class="slide" data-t="20" data-cap="The risk is the point. A company minus, 180 miles from support, with what it can carry. The mitigations are deliberate: rehearsals, leader certification, rations carried on the aircraft, and a proof-of-concept run before anyone bets a deep attack on it.">
+  <div class="a"><div class="eyebrow">Risk <span class="ph">and what buys it down</span></div><h2>A company, alone, <em>180 miles out.</em></h2></div>
+  <div class="cols c3" style="margin-top:30px">
     <div class="card a" style="--d:.4s"><span class="tag rose">Risk to force</span><h3>Distance from help</h3><p>A company (minus) with limited sustainment, 180 nautical miles from the home airfield. Casualty evacuation and resupply are both aircraft that have to be planned, not assumed.</p></div>
     <div class="card a" style="--d:.6s"><span class="tag rose">Risk to mission</span><h3>A lit fuel point</h3><p>Rotors turning, fuel flowing, aircraft on the ground on a schedule. The window is the vulnerability. The concept answers with isolation and a short clock.</p></div>
     <div class="card a" style="--d:.8s"><span class="tag rose">Training risk</span><h3>New pathfinders</h3><p>The company accepts the risk of operating with newly qualified pathfinders, because a Division pathfinder company is who this mission would be given to.</p></div>
   </div>
   <div class="cols c3">
     <div class="card a hi" style="--d:1.1s"><span class="tag amber">Mitigation</span><h3>Carry the day</h3><p>One day of supply of rations issued before wheels up and one more carried per soldier on the aircraft.</p></div>
-    <div class="card a hi" style="--d:1.3s"><span class="tag amber">Mitigation</span><h3>Rehearse the whole thing</h3><p>Deliberate rehearsals, air assault planning with the aviation battalion, cold loads on the real aircraft, and leader certification before execution.</p></div>
-    <div class="card a hi" style="--d:1.5s"><span class="tag amber">Mitigation</span><h3>Prove it first</h3><p>Validate the task force on a training objective at full distance before the concept is used to underwrite a deep attack.</p></div>
+    <div class="card a hi" style="--d:1.3s"><span class="tag amber">Mitigation</span><h3>Rehearse the whole thing</h3><p>Deliberate rehearsals, planning with the aviation battalion, cold loads on the real aircraft, leader certification before execution.</p></div>
+    <div class="card a hi" style="--d:1.5s"><span class="tag amber">Mitigation</span><h3>Prove it first</h3><p>Validate the task force on a training objective at full distance before the concept underwrites a deep attack.</p></div>
   </div>
   <div class="foot"><span>Source: Storm Surge commander's intent</span><span>14</span></div>
 </section>
 
-<!-- 15 · STORM SURGE -->
-<section class="slide" data-t="22" data-cap="The proof of concept: Operation Storm Surge, late October. A company air assault from Fort Campbell to Tullahoma, Tennessee, at the real distance, with the real fuel aircraft, to validate the task force and the pathfinder operations behind it.">
-  <div class="eyebrow a">Proof of concept <span class="ph">Operation Storm Surge</span></div>
-  <h2 class="a" style="--d:.1s">Fly it at <em>full distance</em> before it counts.</h2>
-  <div class="two" style="grid-template-columns:1.15fr 1fr;margin-top:24px">
-    <svg viewBox="0 0 780 400" width="780" height="400">
-      <rect x="0" y="0" width="780" height="400" rx="18" fill="var(--bg2)" stroke="var(--line)"/>
-      <path id="ss" d="M90 300 C 250 120, 480 120, 660 190" fill="none"/>
-      <path d="M90 300 C 250 120, 480 120, 660 190" fill="none" stroke="var(--sky)" stroke-width="1.5" opacity=".5" pathLength="1" class="draw" style="--d:.4s"/>
-      <circle cx="90" cy="300" r="7" fill="var(--fg)"/><text x="90" y="336" class="mid fg">Campbell Army Airfield</text><text x="90" y="356" class="mid">Fort Campbell, KY</text>
-      <circle cx="660" cy="190" r="8" fill="var(--amber)" class="pulse"/><circle cx="660" cy="190" r="36" fill="none" stroke="var(--amber)" class="ring"/><text x="660" y="236" class="mid amber">Tullahoma, TN</text><text x="660" y="256" class="mid">LZ Owl · OBJ Bernese · PZ Cedar</text>
-      <text x="380" y="150" class="mid fg">184 NM</text>
-      <g style="color:var(--sky2)"><use href="#ch47" width="56" height="40" x="-28" y="-20"><animateMotion dur="3.2s" begin=".8s" fill="freeze" rotate="auto"><mpath href="#ss"/></animateMotion></use></g>
-      <g style="color:var(--amber2)"><use href="#ch47" width="56" height="40" x="-28" y="-20"><animateMotion dur="3.2s" begin="1.3s" fill="freeze" rotate="auto"><mpath href="#ss"/></animateMotion></use></g>
-      <g style="color:var(--sky2)"><use href="#uh60" width="44" height="28" x="-22" y="-14"><animateMotion dur="3.2s" begin="1.7s" fill="freeze" rotate="auto"><mpath href="#ss"/></animateMotion></use></g>
-      <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="4.2s" fill="freeze"/>
-        <text x="40" y="60" class="big" style="font-size:18px">28–29 OCT 2026 · wheels up 2200Z · wheels down 0030Z · seized by 0130Z</text>
-        <text x="40" y="84">3× CH-47 (1 PAX, 1 FATCOW) · 1× UH-60 · 83 PAX · night</text>
-      </g>
-    </svg>
-    <div>
-      <p class="a" style="--d:.3s"><strong>Purpose.</strong> Validate a FARP seizure mission set that would be given to a Division pathfinder company, and prove the company's internal loading, command and control, enabler and FARP packages in an unfamiliar pickup zone.</p>
-      <ul class="list" style="margin-top:20px">
-        <li class="a" style="--d:.8s"><div><b>185 NM with no refuel</b>, using the extended range fuel system on the first serial.</div></li>
-        <li class="a" style="--d:1s"><div><b>WETCOW extends attack aviation 60 NM</b> beyond the objective.</div></li>
-        <li class="a" style="--d:1.2s"><div><b>Three WETCOWs across five FARP locations</b>, dispersed and secured at once, supporting more than one aircraft type.</div></li>
-        <li class="a" style="--d:1.4s"><div><b>Hippo concept at 370 NM total</b>, with sustainment and command nodes delivered by air, including an air-deliverable tactical command post.</div></li>
-      </ul>
-      <p class="a small" style="--d:1.8s;margin-top:22px">End state: the task force validated, every soldier and piece of equipment accounted for, nothing damaged on the ground. Then an after action review on 30 October and the concept goes back into the Division's planning with numbers behind it.</p>
-    </div>
+<!-- 15 STORM SURGE -->
+<section class="slide" data-t="24" data-cap="The proof of concept: Operation Storm Surge, late October. A company air assault from Fort Campbell to Tullahoma, Tennessee, at the real distance, with the real fuel aircraft, to validate the task force and the pathfinder operations behind it.">
+  <div class="left" style="width:540px">
+    <div class="a"><div class="eyebrow">Proof of concept <span class="ph">Operation Storm Surge</span></div><h2>Fly it at <em>full distance</em> before it counts.</h2></div>
+    <div class="panel a" style="--d:.4s"><p class="small"><strong>Purpose.</strong> Validate a FARP seizure mission set that would be given to a Division pathfinder company, and prove the company's loading, command and control, enabler and FARP packages in an unfamiliar pickup zone.</p>
+      <ul class="list" style="margin-top:14px;font-size:16px">
+        <li class="a" style="--d:1s"><div><b>185 NM with no refuel</b>, using the extended range fuel system on the first serial.</div></li>
+        <li class="a" style="--d:1.3s"><div><b>WETCOW extends attack aviation 60 NM</b> beyond the objective.</div></li>
+        <li class="a" style="--d:1.6s"><div><b>Three WETCOWs across five FARP locations</b>, dispersed and secured at once, supporting more than one aircraft type.</div></li>
+        <li class="a" style="--d:1.9s"><div><b>Hippo concept at 370 NM total</b>, with sustainment and command nodes delivered by air, including an air-deliverable tactical command post.</div></li>
+      </ul></div>
   </div>
-  <div class="foot"><span>Source: Storm Surge AMCM / AMB · 06 OCT 26</span><span>15</span></div>
+  <div class="right" style="width:440px;gap:14px">
+    <div class="panel a" style="--d:.8s"><div class="kv" style="font-size:15px"><b>28–29 OCT 26</b><span>Campbell Army Airfield to Tullahoma, TN · 184 NM</span><b>2200Z</b><span>Wheels up</span><b>0030Z</b><span>Wheels down · H-hour</span><b>0130Z</b><span>FARP seized</span><b>0230Z</b><span>FARP ops complete</span><b>0330Z</b><span>Reconsolidated</span><b>Package</b><span>3× CH-47 (1 PAX, 1 FATCOW) · 1× UH-60 · 83 PAX · night</span></div></div>
+    <div class="photo kb a" style="--d:1.4s;aspect-ratio:16/9"><img src="assets/lz-falcon.jpg" alt="Oblique aerial photo of LZ Falcon"><div class="cap">Tullahoma training area · LZ Falcon</div></div>
+  </div>
+  <div class="foot"><span>Source: Storm Surge AMCM / AMB · 06 OCT 26 · AAR 30 OCT</span><span>15</span></div>
 </section>
 
-<!-- 16 · CLOSE -->
+<!-- 16 CLOSE -->
 <section class="slide" data-t="30" data-cap="Fuel forward is reach forward. Seize the ground, land the fuel, turn the attack, and leave. That is how an infantry company lets a division strike three hundred miles deep.">
   <div class="eyebrow a">In one line</div>
-  <h1 class="a" style="--d:.15s;font-size:84px;margin-top:30px">Fuel forward is <em>reach forward.</em></h1>
-  <p class="lede a" style="--d:.4s;margin-top:22px">Seize the ground. Land the fuel. Turn the attack. Leave. An infantry company, three hours on the ground, and the Division's deep fight gets 200 miles closer.</p>
-  <div class="two a" style="--d:.8s;margin-top:40px;gap:50px;grid-template-columns:1fr 1fr">
-    <div>
-      <div class="tag">Terms</div>
-      <div class="kv small" style="margin-top:14px;font-size:15px;gap:7px 18px">
-        <b>J-FARP</b><span>Jump forward arming and refueling point</span>
-        <b>ISB</b><span>Intermediate staging base</span>
-        <b>GTF</b><span>Ground task force</span>
-        <b>FATCOW / WETCOW</b><span>CH-47 configured with internal range tanks to refuel other aircraft at a forward site</span>
-        <b>ERFS</b><span>Extended range fuel system</span>
-        <b>L2A2</b><span>Large-scale, long-range air assault</span>
-        <b>IPC · AMCM · AMB</b><span>Initial planning conference · air mission coordination meeting · air mission brief</span>
-        <b>W/U · W/D</b><span>Wheels up · wheels down</span>
-        <b>BP · OP</b><span>Blocking position · observation post</span>
-        <b>NOMAD · ISV</b><span>Company command node · infantry squad vehicle</span>
-      </div>
-    </div>
-    <div>
-      <div class="tag">Sources</div>
-      <p class="small" style="margin-top:14px;font-size:16px">Doctrinal framing draws on FM 3-04 <em>Army Aviation</em>, ATP 3-04.17 <em>Techniques for Forward Arming and Refueling Points</em>, and FM 3-99 <em>Airborne and Air Assault Operations</em>.</p>
-      <p class="small" style="margin-top:12px;font-size:16px">Distances, task organization, lift packages, phasing, timeline and deliverables are from the Dog Company J-FARP Seizure CONOP and the Operation Storm Surge AMCM / AMB deck of 06 OCT 26.</p>
-      <p class="small" style="margin-top:12px;font-size:16px">Phase II team-to-zone assignments and the Phase IV layout are illustrative renderings of the concept, not the published scheme of maneuver.</p>
-    </div>
+  <h1 class="a" style="--d:.15s;font-size:80px;margin-top:26px">Fuel forward is <em>reach forward.</em></h1>
+  <p class="lede a" style="--d:.4s;margin-top:18px;max-width:44ch">Seize the ground. Land the fuel. Turn the attack. Leave. An infantry company, three hours on the ground, and the Division's deep fight gets 200 miles closer.</p>
+  <div class="bottom" style="gap:20px;align-items:stretch">
+    <div class="panel a" style="--d:.8s;flex:1.2"><div class="tag">Terms</div>
+      <div class="kv small" style="margin-top:12px;font-size:13.5px;gap:5px 16px">
+        <b>J-FARP</b><span>Jump forward arming and refueling point</span><b>ISB</b><span>Intermediate staging base</span><b>GTF</b><span>Ground task force</span><b>FATCOW / WETCOW</b><span>CH-47 configured with internal range tanks to refuel other aircraft at a forward site</span><b>ERFS</b><span>Extended range fuel system</span><b>L2A2</b><span>Large-scale, long-range air assault</span><b>IPC · AMCM · AMB</b><span>Initial planning conference · air mission coordination meeting · air mission brief</span><b>W/U · W/D</b><span>Wheels up · wheels down</span><b>BP · OP</b><span>Blocking position · observation post</span><b>NOMAD · ISV</b><span>Company command node · infantry squad vehicle</span>
+      </div></div>
+    <div class="panel a" style="--d:1s;flex:1"><div class="tag">Sources</div>
+      <p class="small" style="margin-top:12px;font-size:14.5px">Doctrinal framing draws on FM 3-04 <em>Army Aviation</em>, ATP 3-04.17 <em>Techniques for Forward Arming and Refueling Points</em>, and FM 3-99 <em>Airborne and Air Assault Operations</em>.</p>
+      <p class="small" style="margin-top:10px;font-size:14.5px">Distances, task organization, lifts, phasing, timeline, deliverables, aerial imagery and load plans are from the Dog Company J-FARP Seizure CONOP and the Operation Storm Surge AMCM / AMB deck of 06 OCT 26.</p>
+      <p class="small" style="margin-top:10px;font-size:14.5px">The wide-area terrain is a synthetic rendering of the CONOP's concept sketch. Phase II team-to-zone assignments and the Phase IV layout are illustrative.</p></div>
   </div>
   <div class="foot"><span>Dog Company · 2-506 IN · 6-101 CAB</span><span>16 · end</span></div>
 </section>
@@ -792,71 +393,382 @@ svg text.mid{text-anchor:middle}
   <button class="btn" id="prev" aria-label="Previous slide"><svg viewBox="0 0 10 10"><path d="M7 1L2 5l5 4z"/></svg></button>
   <button class="btn" id="play" aria-label="Play"><svg viewBox="0 0 10 10" id="playico"><path d="M2 1l7 4-7 4z"/></svg><span class="lbl">Play</span></button>
   <button class="btn" id="next" aria-label="Next slide"><svg viewBox="0 0 10 10"><path d="M3 1l5 4-5 4z"/></svg></button>
-  <button class="btn" id="capbtn" aria-pressed="false"><span class="lbl">Narration</span><span style="display:none" class="x">CC</span></button>
+  <button class="btn" id="capbtn" aria-pressed="false"><span class="lbl">Narration</span></button>
+  <button class="btn" id="replay" aria-label="Replay this scene"><svg viewBox="0 0 10 10"><path d="M5 1a4 4 0 1 1-3.5 2H0l2.2-3L4.5 3H3.2A2.8 2.8 0 1 0 5 2.2z"/></svg><span class="lbl">Replay</span></button>
   <div id="dots" role="tablist" aria-label="Slides"></div>
   <span id="count">01 / 16</span>
 </div>
 
 <script>
 (function(){
-  const stage=document.getElementById('stage'), wrap=document.getElementById('wrap');
-  const slides=[...document.querySelectorAll('.slide')];
-  const prog=document.getElementById('prog'), count=document.getElementById('count'), cap=document.getElementById('cap');
-  const playBtn=document.getElementById('play'), capBtn=document.getElementById('capbtn'), dots=document.getElementById('dots');
-  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let i=0, playing=false, timer=null, caps=false;
+'use strict';
+/* ---------- deck chrome ---------- */
+const stage=document.getElementById('stage'), wrap=document.getElementById('wrap');
+const slides=[...document.querySelectorAll('.slide')];
+const prog=document.getElementById('prog'), count=document.getElementById('count'), cap=document.getElementById('cap');
+const playBtn=document.getElementById('play'), capBtn=document.getElementById('capbtn'), dots=document.getElementById('dots');
+let cur=0, playing=false, timer=null, caps=false;
+function fit(){const r=wrap.getBoundingClientRect();const s=Math.min(r.width/1600,r.height/900);stage.style.transform=`translate(-50%,-50%) scale(${s})`;}
+addEventListener('resize',fit); fit();
+slides.forEach((s,k)=>{const b=document.createElement('button');b.setAttribute('role','tab');b.setAttribute('aria-label','Slide '+(k+1));b.addEventListener('click',e=>{e.stopPropagation();go(k)});dots.appendChild(b);});
 
-  function fit(){const r=wrap.getBoundingClientRect();const s=Math.min(r.width/1600,r.height/900);stage.style.transform=`translate(-50%,-50%) scale(${s})`;}
-  addEventListener('resize',fit); fit();
+/* ---------- 3D engine ---------- */
+const hasGL=(()=>{try{const c=document.createElement('canvas');return !!(window.THREE&&(c.getContext('webgl2')||c.getContext('webgl')))}catch(e){return false}})();
+let E=null; // engine
+if(!hasGL){document.getElementById('nogl').style.display='block';document.getElementById('load').classList.add('off');}
 
-  // pax rows (slide 6)
-  function paxRow(id,n,color){const s=document.getElementById(id);if(!s)return;let h='';for(let k=0;k<n;k++){h+=`<use href="#pax" width="10" height="14" x="${k*13}" y="8" opacity="0"><animate attributeName="opacity" from="0" to="1" dur=".3s" begin="${1+k*.06}s" fill="freeze"/></use>`;}s.innerHTML=h;}
-  paxRow('paxA',39);paxRow('paxB',30);paxRow('paxC',12);
+/* noise */
+function hash(x,y){const n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n)}
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);const a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+function fbm(x,y,o){o=o||5;let s=0,a=.5,f=1;for(let i=0;i<o;i++){s+=a*vnoise(x*f,y*f);f*=2;a*=.5}return s}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const sstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
 
-  // reverse planning chain (slide 7)
-  (function(){const g=document.getElementById('steps');if(!g)return;const names=[['Staging plan','who waits where, in what order'],['Loading plan','what goes on which aircraft'],['Air movement plan','routes, timing, formation'],['Landing plan','which zone, what heading, what order'],['Ground tactical plan','what happens on the objective']];let h='';names.forEach((n,k)=>{const x=90+k*300;const d=(.9+k*.4).toFixed(2);h+=`<g class="a" style="--d:${d}s"><circle cx="${x+50}" cy="80" r="26" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"/><text x="${x+50}" y="86" class="mid amber" style="font-size:15px">${5-k}</text><text x="${x+50}" y="146" class="mid big" style="font-size:20px">${n[0]}</text><text x="${x+50}" y="170" class="mid" style="text-transform:none;letter-spacing:.02em;font-size:13px">${n[1]}</text></g>`;});g.innerHTML=h;})();
+/* wide-world terrain height (x east, z south) */
+const W={ISB:[-1550,650],FARP:[150,40],CITY:[1650,-600],LAKE:[950,-250],MASSIF:[-650,-150]};
+function hW(x,z){
+  let h=fbm(x/700+3,z/700+7,5)*140-50+fbm(x/180+5,z/180+1,3)*22;
+  h+=sstep(-550,-1000,z)*(240+fbm(x/260,z/260,5)*320);h+=sstep(900,1400,z)*(120+fbm(x/300+2,z/300,4)*200);
+  const dm=Math.hypot(x-W.MASSIF[0],z-W.MASSIF[1]);h+=Math.pow(Math.max(0,1-dm/460),1.2)*(260+fbm(x/110+9,z/110,5)*300);const dm2=Math.hypot(x+1250,z+450);h+=Math.pow(Math.max(0,1-dm2/380),1.3)*(200+fbm(x/130+4,z/130+8,4)*220);
+  const dl=Math.hypot(x-W.LAKE[0],z-W.LAKE[1]);h=lerp(h,-28,sstep(470,300,dl));
+  const flat=(cx,cz,r,v)=>{const d=Math.hypot(x-cx,z-cz);h=lerp(h,v,sstep(r,r*.55,d))};
+  flat(W.ISB[0],W.ISB[1],330,6);flat(W.FARP[0],W.FARP[1],230,14);flat(W.CITY[0],W.CITY[1],360,8);
+  return h;
+}
+function makeLabel(text,color,size,w){
+  const c=document.createElement('canvas');const s=size||26;c.width=512;c.height=96;const g=c.getContext('2d');
+  g.font=`500 ${s}px "IBM Plex Mono", monospace`;g.textAlign='center';g.textBaseline='middle';g.letterSpacing='3px';
+  g.shadowColor='rgba(0,0,0,.9)';g.shadowBlur=10;g.fillStyle=color||'#eef0f8';g.fillText(text.toUpperCase(),256,48);
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false,sizeAttenuation:false}));sp.renderOrder=20;const ww=w||.1;sp.scale.set(ww,ww/5.33,1);return sp;
+}
+function dotTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.42,'rgba(255,255,255,1)');r.addColorStop(.5,'rgba(255,255,255,.35)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)}
+function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.3,'rgba(255,255,255,.6)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)}
 
-  // dots
-  slides.forEach((s,k)=>{const b=document.createElement('button');b.setAttribute('role','tab');b.setAttribute('aria-label','Slide '+(k+1));b.addEventListener('click',()=>go(k));dots.appendChild(b);});
+function Engine(){
+  const canvas=document.getElementById('gl');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x060a16);
+  const camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,1,20000);
+  const GLOW=glowTex(),DOT=dotTex();
+  // sky
+  const stars=(()=>{const n=2600,p=new Float32Array(n*3);for(let i=0;i<n;i++){const th=Math.random()*Math.PI*2,ph=Math.acos(Math.random()*.9+.05);const r=9000;p[i*3]=r*Math.sin(ph)*Math.cos(th);p[i*3+1]=r*Math.cos(ph);p[i*3+2]=r*Math.sin(ph)*Math.sin(th)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));return new THREE.Points(g,new THREE.PointsMaterial({color:0xcfd8ff,size:14,sizeAttenuation:true,transparent:true,opacity:.8}))})();scene.add(stars);
+  const moon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xdbe6ff,transparent:true,opacity:.95,depthWrite:false}));moon.scale.set(900,900,1);moon.position.set(-3200,4200,-6500);scene.add(moon);
+  const moonDisc=new THREE.Mesh(new THREE.CircleGeometry(150,48),new THREE.MeshBasicMaterial({color:0xf4f6ff}));moonDisc.position.copy(moon.position);moonDisc.lookAt(0,0,0);scene.add(moonDisc);
+  // lights
+  const hemi=new THREE.HemisphereLight(0x6f8fd6,0x151d12,.42);scene.add(hemi);
+  const sun=new THREE.DirectionalLight(0xd6e2ff,.95);sun.position.set(-1400,2600,-1800);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.near=100;sun.shadow.camera.far=9000;sun.shadow.bias=-0.0006;scene.add(sun);scene.add(sun.target);
+  function shadowBox(s){const c=sun.shadow.camera;c.left=-s;c.right=s;c.top=s;c.bottom=-s;c.updateProjectionMatrix();}
+  const amb=new THREE.AmbientLight(0x2a3650,.25);scene.add(amb);
 
-  function svgs(s,fn){s.querySelectorAll('svg').forEach(fn);}
-  function go(n,fromPlay){
-    n=Math.max(0,Math.min(slides.length-1,n));
-    const prev=slides[i]; prev.classList.remove('active'); svgs(prev,v=>{try{v.pauseAnimations()}catch(e){}});
-    i=n; const s=slides[i]; s.classList.add('active');
-    svgs(s,v=>{try{v.setCurrentTime(0);v.unpauseAnimations();}catch(e){}});
-    prog.style.width=((i+1)/slides.length*100)+'%';
-    count.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
-    [...dots.children].forEach((d,k)=>d.classList.toggle('cur',k===i));
-    cap.textContent=s.dataset.cap||''; cap.classList.toggle('show',caps&&!!s.dataset.cap);
-    try{history.replaceState(null,'','#s'+(i+1));}catch(e){}
-    if(playing) arm();
-  }
-  function arm(){clearTimeout(timer);const t=(parseFloat(slides[i].dataset.t)||14)*(reduce?.6:1)*1000;timer=setTimeout(()=>{if(i<slides.length-1)go(i+1,true);else stop();},t);}
-  function start(){playing=true;playBtn.classList.add('on');playBtn.querySelector('.lbl').textContent='Pause';playBtn.setAttribute('aria-label','Pause');document.getElementById('playico').innerHTML='<path d="M2 1h2v8H2zM6 1h2v8H6z"/>';if(!caps){caps=true;capBtn.classList.add('on');capBtn.setAttribute('aria-pressed','true');cap.classList.toggle('show',!!slides[i].dataset.cap);}arm();}
-  function stop(){playing=false;clearTimeout(timer);playBtn.classList.remove('on');playBtn.querySelector('.lbl').textContent='Play';playBtn.setAttribute('aria-label','Play');document.getElementById('playico').innerHTML='<path d="M2 1l7 4-7 4z"/>';}
-  playBtn.addEventListener('click',()=>playing?stop():start());
-  capBtn.addEventListener('click',()=>{caps=!caps;capBtn.classList.toggle('on',caps);capBtn.setAttribute('aria-pressed',String(caps));cap.classList.toggle('show',caps&&!!slides[i].dataset.cap);});
-  document.getElementById('prev').addEventListener('click',()=>go(i-1));
-  document.getElementById('next').addEventListener('click',()=>go(i+1));
-  addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
-    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();go(i+1);}
-    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
-    else if(e.key==='Home'){go(0)}else if(e.key==='End'){go(slides.length-1)}
-    else if(e.key==='p'||e.key==='P'){playing?stop():start()}
-    else if(e.key==='r'||e.key==='R'){go(i)}
-    else if(e.key==='c'||e.key==='C'){capBtn.click()}
+  /* ===== WIDE WORLD ===== */
+  const wide=new THREE.Group();scene.add(wide);
+  (function buildWide(){
+    const sx=6000,sz=3400,nx=300,nz=170;
+    const g=new THREE.PlaneGeometry(sx,sz,nx,nz);g.rotateX(-Math.PI/2);
+    const pos=g.attributes.position,col=new Float32Array(pos.count*3);
+    const cLow=new THREE.Color(0x2c5226),cField=new THREE.Color(0x66552f),cMid=new THREE.Color(0x56503a),cRock=new THREE.Color(0x4b4845),cSnow=new THREE.Color(0xc6ced8),cBed=new THREE.Color(0x3c3527);
+    for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);const h=hW(x,z);pos.setY(i,h);
+      const n=fbm(x/140+1,z/140+2,3);let c=cLow.clone().lerp(cField,sstep(.35,.7,n));
+      c.lerp(cMid,sstep(40,140,h));c.lerp(cRock,sstep(150,260,h));c.lerp(cSnow,sstep(330,430,h));
+      const dl=Math.hypot(x-W.LAKE[0],z-W.LAKE[1]);c.lerp(cBed,sstep(470,330,dl));
+      const dc=Math.hypot(x-W.CITY[0],z-W.CITY[1]);c.lerp(new THREE.Color(0x4a4a4e),sstep(360,220,dc));
+      const di=Math.hypot(x-W.ISB[0],z-W.ISB[1]);c.lerp(new THREE.Color(0x5a5f55),sstep(300,200,di));
+      const df=Math.hypot(x-W.FARP[0],z-W.FARP[1]);c.lerp(new THREE.Color(0x5f7a3a),sstep(220,120,df));
+      col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
+    g.setAttribute('color',new THREE.BufferAttribute(col,3));g.computeVertexNormals();
+    const grain=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const g2=c.getContext('2d');const im=g2.createImageData(256,256);for(let i=0;i<256*256;i++){const x=i%256,y=(i/256)|0;const v=140+fbm(x/18,y/18,4)*90+ (Math.random()-.5)*40;im.data[i*4]=im.data[i*4+1]=im.data[i*4+2]=v;im.data[i*4+3]=255}g2.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(60,34);return t})();
+    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,map:grain,roughness:.95,metalness:0}));m.receiveShadow=true;wide.add(m);
+    // bedrock skirt like the concept board
+    const skirt=new THREE.Mesh(new THREE.BoxGeometry(sx,320,sz),new THREE.MeshStandardMaterial({color:0x2a211b,roughness:1}));skirt.position.y=-230;wide.add(skirt);
+    // water
+    const water=new THREE.Mesh(new THREE.CircleGeometry(400,64),new THREE.MeshStandardMaterial({color:0x1d5a9a,emissive:0x1f66b4,emissiveIntensity:.55,roughness:.25,metalness:0,transparent:true,opacity:.95}));water.rotation.x=-Math.PI/2;water.position.set(W.LAKE[0],-6,W.LAKE[1]);wide.add(water);
+    // city
+    const N=420,inst=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0x1c2027,roughness:.8,emissive:0xffb466,emissiveIntensity:0}),N);
+    const win=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g2=c.getContext('2d');g2.fillStyle='#000';g2.fillRect(0,0,64,64);for(let y=3;y<64;y+=6)for(let x=3;x<64;x+=6){if(Math.random()<.4){g2.fillStyle=Math.random()<.75?'#ffc784':'#9fd4ff';g2.fillRect(x,y,2,3)}}const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;return t})();
+    inst.material.emissiveMap=win;inst.material.emissiveIntensity=2.4;
+    const d=new THREE.Object3D();let k=0;
+    for(let i=0;i<N;i++){const r=Math.sqrt(Math.random())*300,a=Math.random()*Math.PI*2;const x=W.CITY[0]+Math.cos(a)*r*1.2,z=W.CITY[1]+Math.sin(a)*r*.8;const h=10+Math.pow(Math.random(),2.2)*90*(1-r/320)+6;d.position.set(x,hW(x,z)+h/2,z);d.scale.set(8+Math.random()*12,h,8+Math.random()*12);d.rotation.y=Math.round(Math.random()*4)*Math.PI/2;d.updateMatrix();inst.setMatrixAt(k++,d.matrix)}
+    inst.castShadow=true;wide.add(inst);
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffa050,transparent:true,opacity:.35,depthWrite:false}));glow.scale.set(1100,600,1);glow.material.opacity=.45;glow.position.set(W.CITY[0],60,W.CITY[1]);wide.add(glow);
+    // ISB airfield
+    const rw=new THREE.Mesh(new THREE.PlaneGeometry(560,46),new THREE.MeshStandardMaterial({color:0x23262c,roughness:.9}));rw.rotation.x=-Math.PI/2;rw.rotation.z=.25;rw.position.set(W.ISB[0],7.2,W.ISB[1]);rw.receiveShadow=true;wide.add(rw);
+    const apron=new THREE.Mesh(new THREE.PlaneGeometry(260,180),new THREE.MeshStandardMaterial({color:0x2a2d33,roughness:.9}));apron.rotation.x=-Math.PI/2;apron.position.set(W.ISB[0]+60,7.1,W.ISB[1]+120);wide.add(apron);
+    const ep=[];for(let i=-13;i<=13;i++){const x=i*21;for(const s of[-25,25]){const px=W.ISB[0]+x*Math.cos(.25)+s*Math.sin(.25),pz=W.ISB[1]-x*Math.sin(.25)+s*Math.cos(.25);ep.push(px,8.5,pz)}}
+    const eg=new THREE.BufferGeometry();eg.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));wide.add(new THREE.Points(eg,new THREE.PointsMaterial({color:0xbfd4ff,size:9,sizeAttenuation:true,map:GLOW,transparent:true,depthWrite:false})));
+    for(let i=0;i<3;i++){const hg=new THREE.Mesh(new THREE.BoxGeometry(70,22,40),new THREE.MeshStandardMaterial({color:0x3a3d44,roughness:.8}));hg.position.set(W.ISB[0]-120+i*90,18,W.ISB[1]+230);hg.castShadow=true;wide.add(hg)}
+    // FARP clearing marker (amber ring) and target ring
+    wide.farpRing=ring(140,8,0xf4b94a);wide.farpRing.position.set(W.FARP[0],hW(W.FARP[0],W.FARP[1])+2,W.FARP[1]);wide.add(wide.farpRing);
+    wide.tgtRing=ring(170,10,0xff7384);wide.tgtRing.position.set(W.CITY[0],hW(W.CITY[0],W.CITY[1])+3,W.CITY[1]);wide.add(wide.tgtRing);
+    wide.range=groundRing(0x79d4ff);wide.range.visible=false;wide.add(wide.range);
+    const L=(t,c,x,z,y)=>{const s=makeLabel(t,c,26,.34);s.position.set(x,(y||hW(x,z))+70,z);wide.add(s);return s};
+    L('Staging base · ISB','#eef0f8',W.ISB[0],W.ISB[1]+40);wide.farpLabel=L('J-FARP site','#ffd98a',W.FARP[0],W.FARP[1]+30);L('Division deep target','#ff9aa6',W.CITY[0],W.CITY[1]+120,hW(W.CITY[0],W.CITY[1])+120);
+  })();
+  function groundRing(color){const N=180;const g=new THREE.BufferGeometry();const pos=new Float32Array((N+1)*2*3);g.setAttribute('position',new THREE.BufferAttribute(pos,3));const idx=[];for(let i=0;i<N;i++){const a=i*2,b=a+1,c=a+2,d=a+3;idx.push(a,b,c,b,d,c)}g.setIndex(idx);const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false}));m.set=(cx,cz,R,w)=>{for(let i=0;i<=N;i++){const a=i/N*Math.PI*2,cs=Math.cos(a),sn=Math.sin(a);for(let k=0;k<2;k++){const r=R+(k?w/2:-w/2),x=cx+cs*r,z=cz+sn*r,o=(i*2+k)*3;pos[o]=x;pos[o+1]=hW(x,z)+16;pos[o+2]=z}}g.attributes.position.needsUpdate=true;g.computeBoundingSphere()};return m}
+  function ring(r,w,color){const m=new THREE.Mesh(new THREE.RingGeometry(r-w/2,r+w/2,96),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false}));m.rotation.x=-Math.PI/2;return m}
+
+  /* ===== OBJECTIVE WORLD (satellite imagery draped on terrain) ===== */
+  const obj=new THREE.Group();obj.visible=false;scene.add(obj);
+  const OW=1600,OH=1209,ON=160,OM=121;let hmap=null;
+  function hO(x,z){if(!hmap)return 0;const u=clamp((x/OW+.5)*ON,0,ON-.001),v=clamp((z/OH+.5)*OM,0,OM-.001);const i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j;const H=(a,b)=>hmap[Math.min(b,OM)*(ON+1)+Math.min(a,ON)];return lerp(lerp(H(i,j),H(i+1,j),fu),lerp(H(i,j+1),H(i+1,j+1),fu),fv)}
+  const oGeo=new THREE.PlaneGeometry(OW,OH,ON,OM);oGeo.rotateX(-Math.PI/2);
+  const oMat=new THREE.MeshStandardMaterial({color:0x8a9a86,roughness:.95,metalness:0});
+  const oMesh=new THREE.Mesh(oGeo,oMat);oMesh.receiveShadow=true;obj.add(oMesh);
+  new THREE.TextureLoader().load('assets/sat.jpg',tex=>{
+    tex.encoding=THREE.sRGBEncoding;tex.anisotropy=renderer.capabilities.getMaxAnisotropy();oMat.map=tex;oMat.color.set(0xffffff);oMat.needsUpdate=true;
+    // heightmap from canopy darkness
+    const c=document.createElement('canvas');c.width=ON+1;c.height=OM+1;const g=c.getContext('2d');g.drawImage(tex.image,0,0,c.width,c.height);const d=g.getImageData(0,0,c.width,c.height).data;
+    const raw=new Float32Array((ON+1)*(OM+1));for(let i=0;i<raw.length;i++){const l=(d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11)/255;raw[i]=sstep(.42,.28,l)*16}
+    hmap=new Float32Array(raw.length);for(let j=0;j<=OM;j++)for(let i=0;i<=ON;i++){let s=0,n=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>ON||jj>OM)continue;s+=raw[jj*(ON+1)+ii];n++}hmap[j*(ON+1)+i]=s/n+fbm(i/9,j/9,2)*1.2}
+    const p=oGeo.attributes.position;for(let i=0;i<p.count;i++){p.setY(i,hmap[i])}p.needsUpdate=true;oGeo.computeVertexNormals();
   });
-  // click on stage advances; tap left third goes back
-  wrap.addEventListener('click',e=>{const r=wrap.getBoundingClientRect();if((e.clientX-r.left)/r.width<.2)go(i-1);else go(i+1);});
-  let tx=null;wrap.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
-  wrap.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50){go(dx<0?i+1:i-1);}tx=null;},{passive:true});
+  const uv=(u,v)=>[ (u-.5)*OW, (v-.5)*OH ];
+  const O={VULTURE:uv(.40,.33),HUSKY:uv(.47,.14),FALCON:uv(.66,.40),POODLE:uv(.72,.50),TANG:uv(.50,.55),CEDAR:uv(.33,.47),OWL:uv(.44,.70),BERNESE:uv(.44,.88),BP1:uv(.22,.37),BP2:uv(.47,.22),BP3:uv(.74,.55),MTR:uv(.36,.56),OP1:uv(.48,.06),OP2:uv(.12,.60),OP3:uv(.84,.63)};
+  (function buildObj(){
+    const Y=24;
+    const dash=(pts,color)=>{const g=new THREE.BufferGeometry().setFromPoints(pts.map(p=>new THREE.Vector3(p[0],Y,p[1])));const l=new THREE.Line(g,new THREE.LineDashedMaterial({color,dashSize:18,gapSize:12,transparent:true,opacity:.75}));l.computeLineDistances();obj.add(l);return l};
+    const pl=(name,pts,c)=>{dash(pts,c);const s=makeLabel(name,c===0xf4b94a?'#ffd98a':'#eef0f8',24,.2);s.position.set(pts[0][0]+120,Y+22,pts[0][1]-14);obj.add(s)};
+    pl('PL Maine',[[-800,-480],[800,-480]],0xf4b94a);pl('PL New York',[[-800,-60],[800,-60]],0xf4b94a);pl('PL Maryland',[[-800,330],[800,330]],0xf4b94a);
+    const plv=(name,x)=>{dash([[x,-604],[x,604]],0xeef0f8);const s=makeLabel(name,'#eef0f8',24,.2);s.position.set(x,Y+22,-560);obj.add(s)};
+    plv('PL Denver',-480);plv('PL Chicago',180);plv('PL Baltimore',560);
+    obj.marks={};
+    const mark=(key,kind,label,color,w,h)=>{const g=new THREE.Group();const p=O[key];g.position.set(p[0],0,p[1]);
+      let m;if(kind==='lz'){m=new THREE.Mesh(new THREE.RingGeometry(w-2.5,w+2.5,64),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false}));m.scale.set(1,h/w,1)}
+      else{const sh=new THREE.Shape();sh.moveTo(-w/2,-h/2);sh.lineTo(w/2,-h/2);sh.lineTo(w/2,h/2);sh.lineTo(-w/2,h/2);sh.lineTo(-w/2,-h/2);const pts=sh.getPoints();const lg=new THREE.BufferGeometry().setFromPoints(pts);m=new THREE.Line(lg,new THREE.LineDashedMaterial({color,dashSize:10,gapSize:7}));m.computeLineDistances()}
+      m.rotation.x=-Math.PI/2;m.position.y=Y-20;g.add(m);
+      const fill=new THREE.Mesh(new THREE.PlaneGeometry(w*(kind==='lz'?2:1),h*(kind==='lz'?2:1)),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0,depthWrite:false}));fill.rotation.x=-Math.PI/2;fill.position.y=Y-20.5;g.add(fill);g.fill=fill;
+      const s=makeLabel(label,color===0xff7384?'#ffb3bb':color===0xf4b94a?'#ffd98a':'#bfe9ff',24,.22);s.position.set(0,Y+10,(kind==='lz'?h:h/2)+26);g.add(s);g.label=s;
+      obj.add(g);obj.marks[key]=g;return g};
+    mark('VULTURE','lz','LZ Vulture',0x79d4ff,60,36);mark('OWL','lz','LZ Owl',0x79d4ff,58,34);mark('FALCON','lz','LZ Falcon',0x79d4ff,40,30);
+    mark('HUSKY','obj','OBJ Husky',0xff7384,110,70);mark('POODLE','obj','OBJ Poodle',0xff7384,90,60);mark('BERNESE','obj','OBJ Bernese',0xff7384,130,70);
+    mark('CEDAR','obj','PZ Cedar',0xf4b94a,170,100);
+    const tl=makeLabel('DZ Tang','#aab2cf',22,.17);tl.position.set(O.TANG[0],Y+8,O.TANG[1]);obj.add(tl);
+    // PZ lights (inverted Y / pathfinder markers)
+    obj.pzLights=new THREE.Group();const lp=[[-70,-40],[70,-40],[-70,40],[70,40],[0,0]];lp.forEach(q=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd98a,transparent:true,depthWrite:false}));s.scale.set(16,16,1);s.position.set(O.CEDAR[0]+q[0],4,O.CEDAR[1]+q[1]);obj.pzLights.add(s)});obj.pzLights.visible=false;obj.add(obj.pzLights);
+    // BPs / OPs / mortars
+    obj.def=new THREE.Group();obj.add(obj.def);obj.def.visible=false;
+    const box=(key,label,color)=>{const g=new THREE.Group();const p=O[key];g.position.set(p[0],0,p[1]);const b=new THREE.Mesh(new THREE.BoxGeometry(44,1,28),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.4,depthWrite:false}));b.position.y=Y-4;g.add(b);const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(44,1,28)),new THREE.LineBasicMaterial({color}));e.position.y=Y-4;g.add(e);const s=makeLabel(label,'#eef0f8',24,.19);s.position.set(0,Y+10,34);g.add(s);obj.def.add(g);return g};
+    obj.bp=[box('BP1','BP 1',0x9fb4ff),box('BP2','BP 2',0x9fb4ff),box('BP3','BP 3',0x9fb4ff)];
+    obj.op=[box('OP1','OP',0x79d4ff),box('OP2','OP',0x79d4ff),box('OP3','OP',0x79d4ff)];
+    obj.mtr=box('MTR','Mortars · DOG 7',0xf4b94a);
+    // sector fans from the FARP
+    const fan=(a0,a1,r)=>{const sh=new THREE.Shape();sh.moveTo(0,0);sh.absarc(0,0,r,a0,a1,false);sh.lineTo(0,0);const m=new THREE.Mesh(new THREE.ShapeGeometry(sh,32),new THREE.MeshBasicMaterial({color:0x79d4ff,transparent:true,opacity:.22,side:THREE.DoubleSide,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(O.CEDAR[0],Y-2,O.CEDAR[1]);const e=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),new THREE.LineBasicMaterial({color:0x79d4ff,transparent:true,opacity:.8}));m.add(e);obj.def.add(m);return m};
+    obj.fans=[fan(Math.PI*.95,Math.PI*1.45,330),fan(Math.PI*1.55,Math.PI*1.95,330),fan(Math.PI*.1,Math.PI*.45,330)];
+    // threat probe
+    obj.threat=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff5566,transparent:true,depthWrite:false}));obj.threat.scale.set(26,26,1);obj.threat.visible=false;obj.add(obj.threat);
+    // site scan ring for phase I
+    obj.scan=ring(90,4,0x79d4ff);obj.scan.position.y=Y-14;obj.scan.visible=false;obj.add(obj.scan);
+  })();
 
-  // aircraft stay hidden until their motion begins
-  document.querySelectorAll('.slide use').forEach(u=>{const am=u.querySelector('animateMotion');if(!am)return;u.setAttribute('opacity','0');const st=document.createElementNS('http://www.w3.org/2000/svg','set');st.setAttribute('attributeName','opacity');st.setAttribute('to','1');st.setAttribute('begin',am.getAttribute('begin')||'0s');st.setAttribute('fill','freeze');u.appendChild(st);});
-  // pause every svg at load, then open on the requested slide
-  slides.forEach(s=>svgs(s,v=>{try{v.pauseAnimations()}catch(e){}}));
-  const m=/^#s(\d+)$/.exec(location.hash); const startAt=m?Math.min(slides.length,Math.max(1,parseInt(m[1],10)))-1:0;
-  slides[0].classList.add('active'); go(startAt);
+  /* ===== aircraft ===== */
+  const matBody=new THREE.MeshStandardMaterial({color:0x474a3f,roughness:.6,metalness:.25});
+  const matBodyA=new THREE.MeshStandardMaterial({color:0x5a4a2a,roughness:.6,metalness:.25});
+  const matDark=new THREE.MeshStandardMaterial({color:0x22242a,roughness:.5,metalness:.4});
+  const matDisc=new THREE.MeshBasicMaterial({color:0x9aa0aa,transparent:true,opacity:.16,side:THREE.DoubleSide,depthWrite:false});
+  function rotor(r,n,y,x){const g=new THREE.Group();g.position.set(x||0,y,0);const disc=new THREE.Mesh(new THREE.CircleGeometry(r,40),matDisc);disc.rotation.x=-Math.PI/2;g.add(disc);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,.6,10),matDark);g.add(hub);const bl=new THREE.Group();for(let i=0;i<n;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(r,.08,.45),matDark);b.position.x=r/2;const w=new THREE.Group();w.rotation.y=i*Math.PI*2/n;w.add(b);bl.add(w)}g.add(bl);g.blades=bl;return g}
+  function lamp(color,x,y,z,s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false}));sp.scale.set(s||2.2,s||2.2,1);sp.position.set(x,y,z);return sp}
+  function finish(g,kind){g.rotation.order='YZX';g.traverse(o=>{if(o.isMesh&&o.material!==matDisc){o.castShadow=true}});
+    g.nav=[lamp(0xff3b3b,0,.6,2.2),lamp(0x37ff6a,0,.6,-2.2),lamp(0xffffff,-5,1.2,0,1.6)];g.nav.forEach(l=>g.add(l));
+    const sl=new THREE.SpotLight(0xfff2d0,0,160,.55,.6,1.2);sl.position.set(2,-.5,0);sl.target.position.set(6,-30,0);g.add(sl);g.add(sl.target);g.landing=sl;
+    g.kind=kind;g.rotors=[];g.traverse(o=>{if(o.blades)g.rotors.push(o)});g.visible=false;g.t0=0;return g}
+  function CH47(amber){const g=new THREE.Group();const m=amber?matBodyA:matBody;
+    const f=new THREE.Mesh(new THREE.BoxGeometry(15,2.9,3.4),m);f.position.y=1.6;g.add(f);
+    const nose=new THREE.Mesh(new THREE.SphereGeometry(1.7,16,12),m);nose.position.set(7.6,1.7,0);nose.scale.set(1.3,.85,1);g.add(nose);
+    const p1=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.6,1.8),m);p1.position.set(5.2,3.6,0);g.add(p1);
+    const p2=new THREE.Mesh(new THREE.BoxGeometry(2.4,3.2,2),matDark);p2.position.set(-6.4,4.2,0);g.add(p2);const p1d=new THREE.Mesh(new THREE.BoxGeometry(2.2,.5,1.8),matDark);p1d.position.set(5.2,4.4,0);g.add(p1d);const strip=new THREE.Mesh(new THREE.BoxGeometry(15,.5,3.5),matDark);strip.position.y=3.05;g.add(strip);
+    const r1=rotor(9,3,4.5,5.2),r2=rotor(9,3,6,-6.4);g.add(r1,r2);
+    for(const s of[-1.4,1.4]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,.9,8),matDark);w.position.set(5,.3,s*1.1);g.add(w)}
+    return finish(g,'ch47')}
+  function UH60(){const g=new THREE.Group();
+    const f=new THREE.Mesh(new THREE.BoxGeometry(7.5,2.4,2.6),matBody);f.position.y=1.4;g.add(f);
+    const nose=new THREE.Mesh(new THREE.SphereGeometry(1.3,14,10),matBody);nose.position.set(3.9,1.3,0);nose.scale.set(1.4,.8,1);g.add(nose);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(7,.9,.8),matBody);tail.position.set(-6.8,2,0);g.add(tail);
+    const fin=new THREE.Mesh(new THREE.BoxGeometry(.6,2.4,.3),matBody);fin.position.set(-10,3,0);g.add(fin);
+    const tr=new THREE.Mesh(new THREE.CircleGeometry(1.6,16),matDisc);tr.position.set(-10,3.2,.4);g.add(tr);
+    g.add(rotor(8.2,4,3.2,0));return finish(g,'uh60')}
+  function AH64(){const g=new THREE.Group();
+    const f=new THREE.Mesh(new THREE.BoxGeometry(8,1.9,1.3),matBody);f.position.y=1.2;g.add(f);
+    const can=new THREE.Mesh(new THREE.BoxGeometry(3.6,1.3,1.2),matDark);can.position.set(2.4,2.5,0);g.add(can);
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(.7,2.2,12),matBody);nose.rotation.z=-Math.PI/2;nose.position.set(5,.9,0);g.add(nose);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(7,.8,.6),matBody);tail.position.set(-7,1.8,0);g.add(tail);
+    const fin=new THREE.Mesh(new THREE.BoxGeometry(.5,2.2,.3),matBody);fin.position.set(-10,2.8,0);g.add(fin);
+    const wing=new THREE.Mesh(new THREE.BoxGeometry(1.2,.25,6),matBody);wing.position.set(0,1.6,0);g.add(wing);
+    for(const s of[-2.6,2.6]){const pod=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,2,8),matDark);pod.rotation.z=Math.PI/2;pod.position.set(0,1.3,s);g.add(pod)}
+    const tr=new THREE.Mesh(new THREE.CircleGeometry(1.4,16),matDisc);tr.position.set(-10,3,.4);g.add(tr);
+    g.add(rotor(7.3,4,3.1,.8));return finish(g,'ah64')}
+  const A={ch:[CH47(),CH47()],uh:[UH60(),UH60()],fat:[CH47(true),CH47(true)],ah:[AH64(),AH64()]};
+  const allAC=[...A.ch,...A.uh,...A.fat,...A.ah];allAC.forEach(a=>scene.add(a));
+  // troops: glowing clusters
+  function team(n,color){const g=new THREE.Group();g.members=[];const blob=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false,opacity:.22}));blob.scale.set(110,110,1);blob.material.opacity=.3;g.add(blob);g.blob=blob;for(let i=0;i<n;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color,transparent:true,depthWrite:false,depthTest:false,opacity:1}));s.renderOrder=15;s.scale.set(8,8,1);s.off=[(Math.random()-.5)*30,(Math.random()-.5)*30,Math.random()*6.28];g.add(s);g.members.push(s)}g.visible=false;scene.add(g);return g}
+  const T={iso1:team(14,0x9ff0c0),iso2:team(10,0x9ff0c0),iso3:team(8,0x9ff0c0),seize:team(16,0xffd98a),sec:team(8,0xbfe9ff),fuel:team(4,0xffd98a)};
+  const teams=Object.values(T);
+  // hoses & fuel points
+  const hoses=new THREE.Group();obj.add(hoses);hoses.visible=false;
+  const hoseMat=new THREE.MeshStandardMaterial({color:0xf4b94a,emissive:0xf4b94a,emissiveIntensity:.5,roughness:.6});
+  const ptA=[O.CEDAR[0]+45,O.CEDAR[1]-34],ptB=[O.CEDAR[0]+45,O.CEDAR[1]+34],fatPos=[O.CEDAR[0]-50,O.CEDAR[1]];
+  const hoseGeo=(a,b)=>new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(a[0]+6,1.2,a[1]),new THREE.Vector3((a[0]+b[0])/2,1.2,(a[1]+b[1])/2+ (b[1]>a[1]?6:-6)),new THREE.Vector3(b[0]-8,1.2,b[1])]),40,.7,8,false);
+  const hA=new THREE.Mesh(hoseGeo(fatPos,ptA),hoseMat),hB=new THREE.Mesh(hoseGeo(fatPos,ptB),hoseMat);hoses.add(hA,hB);
+  const fp=[ring(9,1.5,0xf4b94a),ring(9,1.5,0xf4b94a)];fp[0].position.set(ptA[0],1.5,ptA[1]);fp[1].position.set(ptB[0],1.5,ptB[1]);hoses.add(fp[0],fp[1]);
+  const fpl=[new THREE.PointLight(0xffb040,0,140,2),new THREE.PointLight(0xffb040,0,140,2)];fpl[0].position.set(ptA[0],12,ptA[1]);fpl[1].position.set(ptB[0],12,ptB[1]);hoses.add(fpl[0],fpl[1]);
+
+  /* ===== timeline helpers ===== */
+  let worldMode='wide';
+  const gY=(x,z)=>worldMode==='wide'?hW(x,z):hO(x,z);
+  const SCALE={wide:7,obj:1.1};
+  function flight(ac,pts,t0,dur,o){o=o||{};const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0],0,p[1])),false,'centripetal',.5);
+    const takeoff=o.takeoff!==false,land=o.land!==false;
+    return function(t){const u=clamp((t-t0)/dur,0,1);const cruise=o.alt==null?(worldMode==='wide'?160:55):o.alt;const sc=o.scale||SCALE[worldMode];
+      if(t<t0&&!o.parked){ac.visible=false;return}
+      ac.visible=true;ac.scale.setScalar(sc);
+      const ue=ease(u);const p=curve.getPointAt(ue),tg=curve.getTangentAt(Math.min(ue,.999));
+      let env=1;if(takeoff)env*=sstep(0,.18,u);if(land)env*=sstep(1,.8,u);
+      const g=gY(p.x,p.z);const lift=(t<t0)?0:env;const hover=(o.hover||0);
+      ac.position.set(p.x,g+ (worldMode==='wide'?10:1.2)+cruise*lift+hover*(1-lift)*0+Math.sin(t*1.3)*lift*(worldMode==='wide'?3:1.2),p.z);
+      const yaw=Math.atan2(-tg.z,tg.x);if(t>=t0&&t<=t0+dur)ac.rotation.y=yaw;
+      ac.rotation.z=(t>t0&&t<t0+dur)?-0.08*Math.sin(Math.PI*u):0; // nose down in cruise
+      ac.rotation.x=(ac._yaw!=null&&t>t0&&t<t0+dur)?clamp((yaw-ac._yaw)*18,-.45,.45):0;ac._yaw=yaw;
+      const final=(land&&u>.72&&u<1)||(takeoff&&u>0&&u<.2);ac.landing.intensity=final?(worldMode==='wide'?0:2.2):0;
+      ac.spin=(t>t0-3&&(t<t0+dur+ (o.spinAfter==null?6:o.spinAfter)))?1:0;
+    }}
+  function walk(tm,from,to,t0,dur,o){o=o||{};return function(t){const u=clamp((t-t0)/dur,0,1);if(t<t0&&!o.pre){tm.visible=false;return}tm.visible=true;const e=ease(u);const x=lerp(from[0],to[0],e),z=lerp(from[1],to[1],e);
+    tm.blob.position.set(x,gY(x,z)+4,z);tm.blob.material.opacity=o.fade?.3*(1-ease((t-o.fade)/2)):.3;tm.members.forEach((s,i)=>{const spread=1-.5*(u>0&&u<1?1:0);const ox=s.off[0]*spread,oz=s.off[1]*spread;s.position.set(x+ox,gY(x+ox,z+oz)+6+Math.sin(t*5+s.off[2])*.3*(u<1?1:0),z+oz);s.material.opacity=o.fade?1-ease((t-o.fade)/2):1})}}
+  function camKF(kfs){return function(t){let i=0;while(i<kfs.length-1&&t>=kfs[i+1].t)i++;const a=kfs[i],b=kfs[Math.min(i+1,kfs.length-1)];const u=a===b?1:ease((t-a.t)/(b.t-a.t));const A=typeof a.v==='function'?a.v(t):a.v,B=typeof b.v==='function'?b.v(t):b.v;
+    return{pos:[lerp(A.pos[0],B.pos[0],u),lerp(A.pos[1],B.pos[1],u),lerp(A.pos[2],B.pos[2],u)],look:[lerp(A.look[0],B.look[0],u),lerp(A.look[1],B.look[1],u),lerp(A.look[2],B.look[2],u)]}}}
+  const V=(px,py,pz,lx,ly,lz)=>({pos:[px,py,pz],look:[lx,ly,lz]});
+  function chase(ac,dx,dy,dz){return t=>{const p=ac.position;const c=Math.cos(ac.rotation.y),s=Math.sin(ac.rotation.y);const ox=dx*c+dz*s,oz=-dx*s+dz*c;return{pos:[p.x+ox,p.y+dy,p.z+oz],look:[p.x,p.y,p.z]}}}
+  function orbit(cx,cy,cz,r,h,w,t0,a0){return t=>{const a=(a0||0)+(t-(t0||0))*w;return{pos:[cx+Math.cos(a)*r,cy+h,cz+Math.sin(a)*r],look:[cx,cy,cz]}}}
+
+  /* ===== shots per slide ===== */
+  const F=W.FARP,I=W.ISB,C=W.CITY;const fy=hW(F[0],F[1]),iy=hW(I[0],I[1]),cy=hW(C[0],C[1]);
+  const isbPark=(k)=>[I[0]+30+k*55,I[1]+120];
+  const shots=[];
+  // 1 title: slow push from the ISB toward the FARP
+  shots[0]={world:'wide',cam:camKF([{t:0,v:V(I[0]-500,900,I[1]+1500,F[0]-600,0,F[1])},{t:16,v:V(I[0]+200,620,I[1]+900,F[0],0,F[1])}]),
+    anims:[...A.ch.map((a,k)=>flight(a,[isbPark(k),[I[0]+400,I[1]-200],[F[0]-300,F[1]-100]],3,40,{parked:true,land:false})),...A.uh.map((a,k)=>flight(a,[isbPark(k+2),[I[0]+420,I[1]-150],[F[0]-300,F[1]-60]],4.5,40,{parked:true,land:false}))]};
+  // 2 reach: AH-64 pair launches, range ring grows, they turn back
+  shots[1]={world:'wide',cam:camKF([{t:0,v:V(I[0]-300,1500,I[1]+1200,F[0]-200,0,F[1]-100)},{t:12,v:V(F[0]-600,1300,F[1]+1500,F[0]+300,0,F[1]-200)},{t:20,v:V(F[0]-100,1100,F[1]+1700,F[0]+500,0,F[1]-300)}]),
+    anims:[...A.ah.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*40],[F[0]-150,F[1]+40+k*40],[F[0]-250,F[1]+300+k*40],[F[0]-700,F[1]+500+k*40]],1+k*.4,19,{parked:true,land:false,alt:200}))],
+    extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),26);wide.range.material.opacity=.65;}};
+  // 3 doctrine: orbit the FARP site with a fuel chinook sitting on it
+  shots[2]={world:'wide',cam:orbit(F[0],fy,F[1],520,260,.045,0,2.6),
+    anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
+  // 4 why: ring recentres on the FARP, AH-64s reach the city
+  shots[3]={world:'wide',cam:camKF([{t:0,v:V(F[0]-900,1000,F[1]+1600,F[0]+400,0,F[1]-200)},{t:14,v:V(F[0]+200,1200,F[1]+1500,C[0]-300,0,C[1])},{t:24,v:V(C[0]-700,700,C[1]+1100,C[0],0,C[1])}]),
+    anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+500,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],2+k*.5,16,{alt:200,land:false}))],
+    extra:t=>{wide.range.visible=t>1;wide.range.set(F[0],F[1],lerp(10,1150,ease((t-1)/6)),26);wide.range.material.color.set(0xf4b94a);wide.range.material.opacity=.45;}};
+  // 5 concept: three lifts, cinematic follow
+  shots[4]={world:'wide',cam:camKF([{t:0,v:V(I[0]-700,700,I[1]+900,I[0],0,I[1])},{t:4,v:chase(A.ch[0],-380,120,-260)},{t:12,v:chase(A.ch[0],-380,120,-260)},{t:16,v:V(F[0]-300,900,F[1]+1300,F[0],0,F[1])},{t:24,v:V(F[0]-100,620,F[1]+900,F[0],0,F[1])},{t:30,v:V(F[0]+300,900,F[1]+1200,C[0]-400,0,C[1])},{t:40,v:V(C[0]-800,500,C[1]+800,C[0],0,C[1])}]),
+    anims:[...A.ch.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*150],[F[0]-60+k*70,F[1]-60+k*110]],1+k*.9,13,{parked:true,alt:170+k*25})),
+      ...A.uh.map((a,k)=>flight(a,[isbPark(k+2),[I[0]+450,I[1]+60+k*140],[F[0]-80+k*60,F[1]+120+k*90]],2.4+k*.8,13,{parked:true,alt:150+k*20})),
+      ...A.fat.map((a,k)=>flight(a,[isbPark(k),[I[0]+520,I[1]-200],[F[0]+80+k*60,F[1]+20+k*70]],14+k*.6,11,{parked:true,alt:170})),
+      ...A.ah.map((a,k)=>flight(a,[isbPark(k+2),[I[0]+560,I[1]-150],[F[0]+10,F[1]+150+k*60]],22+k*.5,9,{parked:true,alt:200,spinAfter:999})),
+      ...A.ah.map((a,k)=>{const f=flight(a,[[F[0]+10,F[1]+150+k*60],[F[0]+600,F[1]-100+k*60],[C[0]-150,C[1]+120+k*60]],34+k*.5,8,{alt:220,land:false});return t=>{if(t>=34+k*.5)f(t)}})]};
+  // 6 GTF: slow high drift over the objective imagery
+  shots[5]={world:'obj',cam:camKF([{t:0,v:V(-400,1500,1300,0,0,0)},{t:22,v:V(300,1300,1100,0,0,-100)}]),anims:[]};
+  // 7 planning: very high overhead, straight down drift
+  shots[6]={world:'obj',cam:camKF([{t:0,v:V(0,1900,300,0,0,0)},{t:22,v:V(100,1700,250,0,0,-50)}]),anims:[]};
+  // 8 phasing: oblique drift
+  shots[7]={world:'obj',cam:camKF([{t:0,v:V(-1200,900,900,-100,0,0)},{t:24,v:V(-900,1000,1200,0,0,0)}]),anims:[]};
+  // 9 phase I: scan candidate sites, settle on Cedar
+  shots[8]={world:'obj',cam:camKF([{t:0,v:V(500,1500,900,0,0,0)},{t:12,v:V(-200,1100,800,O.CEDAR[0],0,O.CEDAR[1])},{t:26,v:V(O.CEDAR[0]-500,600,O.CEDAR[1]+700,O.CEDAR[0],0,O.CEDAR[1])}]),anims:[],
+    extra:t=>{const seq=[['VULTURE',2],['OWL',5],['FALCON',8],['CEDAR',11]];obj.scan.visible=t>1.5;let p=O.VULTURE;for(const s of seq){if(t>=s[1])p=O[s[0]]}obj.scan.position.set(p[0],obj.scan.position.y,p[1]);obj.scan.material.color.set(t>=11?0xf4b94a:0x79d4ff);const pulse=1+.08*Math.sin(t*4);obj.scan.scale.set(pulse,pulse,1);obj.marks.CEDAR.fill.material.opacity=t>11?.22+.08*Math.sin(t*3):0;}};
+  // 10 phase II: the air assault
+  const vIn=[-497,-1039],fIn=[-124,-936],oIn=[-898,651];
+  shots[9]={world:'obj',cam:camKF([{t:0,v:V(-700,900,-1500,O.VULTURE[0],0,O.VULTURE[1])},{t:3,v:chase(A.ch[0],-72,26,44)},{t:12,v:chase(A.ch[0],-72,26,44)},{t:17,v:V(-300,520,520,-100,0,0)},{t:26,v:V(-200,700,500,-100,0,0)},{t:36,v:V(O.BERNESE[0]+200,420,O.BERNESE[1]+420,O.BERNESE[0],0,O.BERNESE[1])},{t:46,v:V(O.CEDAR[0]+100,480,O.CEDAR[1]+520,O.CEDAR[0],0,O.CEDAR[1])}]),
+    anims:[flight(A.ch[0],[vIn,[O.VULTURE[0]-40,O.VULTURE[1]-100],[O.VULTURE[0]-20,O.VULTURE[1]-5]],1,12,{takeoff:false,alt:70}),
+      flight(A.ch[1],[[vIn[0]-60,vIn[1]-90],[O.VULTURE[0]-20,O.VULTURE[1]-170],[O.VULTURE[0]+30,O.VULTURE[1]+12]],1.8,12,{takeoff:false,alt:70}),
+      flight(A.uh[0],[fIn,[O.FALCON[0]-30,O.FALCON[1]-150],[O.FALCON[0],O.FALCON[1]]],2.5,12,{takeoff:false,alt:65}),
+      flight(A.fat[0],[oIn,[O.OWL[0]-200,O.OWL[1]+90],[O.OWL[0]-10,O.OWL[1]]],3,12,{takeoff:false,alt:70}),
+      flight(A.uh[1],[[oIn[0]-70,oIn[1]+80],[O.OWL[0]-230,O.OWL[1]+150],[O.OWL[0]+30,O.OWL[1]+20]],3.8,12,{takeoff:false,alt:65}),
+      walk(T.iso1,O.VULTURE,O.BP1,17,12),walk(T.iso2,O.VULTURE,O.BP2,17.5,10),walk(T.iso3,O.FALCON,O.BP3,18,9),
+      walk(T.seize,O.OWL,O.BERNESE,27,11),walk(T.sec,[O.OWL[0]+20,O.OWL[1]],O.CEDAR,36,10)],
+    extra:t=>{obj.marks.BERNESE.fill.material.opacity=t>37?.22:0;obj.marks.BERNESE.fill.material.color.set(t>37?0x8be3b0:0xff7384);obj.pzLights.visible=t>44;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});obj.def.visible=t>29;obj.bp.forEach((b,i)=>b.visible=t>29+i*.4);obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;obj.fans.forEach(f=>f.visible=false);}};
+  // 11 phase III: FARP ops
+  const cIn=[O.CEDAR[0]-1100,O.CEDAR[1]],cOut=[O.CEDAR[0]+1100,O.CEDAR[1]];
+  shots[10]={world:'obj',cam:camKF([{t:0,v:V(O.CEDAR[0]-900,300,O.CEDAR[1]+700,O.CEDAR[0],0,O.CEDAR[1])},{t:10,v:V(O.CEDAR[0]-250,160,O.CEDAR[1]+330,O.CEDAR[0]-40,0,O.CEDAR[1])},{t:18,v:orbit(O.CEDAR[0],10,O.CEDAR[1],300,170,.06,18,2.2)},{t:34,v:orbit(O.CEDAR[0],10,O.CEDAR[1],300,170,.06,18,2.2)},{t:40,v:V(O.CEDAR[0]-200,260,O.CEDAR[1]+500,O.CEDAR[0]+400,0,O.CEDAR[1]-100)}]),
+    anims:[flight(A.fat[0],[cIn,[fatPos[0]-300,fatPos[1]],fatPos],1,10,{takeoff:false,alt:60,spinAfter:999}),
+      flight(A.fat[1],[[cIn[0]-150,cIn[1]+90],[fatPos[0]-380,fatPos[1]+90],[fatPos[0]-30,fatPos[1]+95]],2.2,10,{takeoff:false,alt:60,spinAfter:14}),
+      walk(T.fuel,[fatPos[0]+10,fatPos[1]],[ptA[0]-10,ptA[1]+8],12,4),walk(T.sec,[O.CEDAR[0]-120,O.CEDAR[1]+70],[O.CEDAR[0]-120,O.CEDAR[1]+70],0,1,{pre:true}),
+      flight(A.ah[0],[[cIn[0],cIn[1]-200],[ptA[0]-260,ptA[1]-60],ptA],18,9,{takeoff:false,alt:50,spinAfter:999}),
+      flight(A.ah[1],[[cIn[0]-120,cIn[1]+260],[ptB[0]-260,ptB[1]+60],ptB],19.2,9,{takeoff:false,alt:50,spinAfter:999}),
+      (()=>{const f=flight(A.ah[0],[ptA,[ptA[0]+280,ptA[1]-40],[cOut[0],cOut[1]-200]],35,8,{alt:70,land:false});return t=>{if(t>=35)f(t)}})(),
+      (()=>{const f=flight(A.ah[1],[ptB,[ptB[0]+280,ptB[1]+40],[cOut[0],cOut[1]+200]],36.2,8,{alt:70,land:false});return t=>{if(t>=36.2)f(t)}})()],
+    extra:t=>{obj.pzLights.visible=true;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});hoses.visible=t>11.5;const n=hA.geometry.index.count;const u=ease((t-11.5)/3);hA.geometry.setDrawRange(0,Math.floor(n*u));hB.geometry.setDrawRange(0,Math.floor(n*ease((t-12)/3)));const on=t>27&&t<35?1:0;fpl.forEach(l=>l.intensity=lerp(l.intensity,on*2.2,.1));fp.forEach((r,i)=>{r.material.opacity=t>14?.5+.4*Math.sin(t*4+i):0});obj.def.visible=true;obj.bp.forEach(b=>b.visible=true);obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;obj.fans.forEach(f=>f.visible=false);}};
+  // 12 phase IV: defense from above; a probe is stopped
+  shots[11]={world:'obj',cam:camKF([{t:0,v:V(O.CEDAR[0]+200,1100,O.CEDAR[1]+700,O.CEDAR[0],0,O.CEDAR[1]-80)},{t:30,v:orbit(O.CEDAR[0],0,O.CEDAR[1]-60,700,800,.03,0,1.1)}]),
+    anims:[flight(A.fat[0],[fatPos,[fatPos[0]+1,fatPos[1]]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999}),
+      walk(T.sec,[O.CEDAR[0]-120,O.CEDAR[1]+70],[O.CEDAR[0]-120,O.CEDAR[1]+70],0,1,{pre:true}),walk(T.iso1,O.BP1,O.BP1,0,1,{pre:true}),walk(T.iso2,O.BP2,O.BP2,0,1,{pre:true}),walk(T.iso3,O.BP3,O.BP3,0,1,{pre:true}),walk(T.seize,O.BERNESE,O.BERNESE,0,1,{pre:true})],
+    extra:t=>{obj.pzLights.visible=true;hoses.visible=true;hA.geometry.setDrawRange(0,Infinity);hB.geometry.setDrawRange(0,Infinity);obj.def.visible=true;obj.bp.forEach((b,i)=>b.visible=t>2+i*.5);obj.op.forEach((o,i)=>o.visible=t>5+i*.5);obj.mtr.visible=t>8;obj.fans.forEach((f,i)=>{f.visible=t>2+i*.5;f.material.opacity=.2+.06*Math.sin(t*2+i)});
+      const pt=t-14;obj.threat.visible=pt>0&&pt<9;if(obj.threat.visible){const u=clamp(pt/6,0,1);const x=lerp(O.OP1[0],O.BP2[0],u),z=lerp(O.OP1[1]-120,O.BP2[1]-40,u);obj.threat.position.set(x,30,z);obj.threat.material.opacity=pt>6?1-(pt-6)/3:1;obj.threat.scale.setScalar(26+ (pt>6?30*(pt-6):0))}}};
+  // 13 collapse: lift out, lights off, pull away
+  shots[12]={world:'obj',cam:camKF([{t:0,v:V(O.CEDAR[0]-300,220,O.CEDAR[1]+420,O.CEDAR[0],0,O.CEDAR[1])},{t:8,v:V(O.CEDAR[0]-200,260,O.CEDAR[1]+420,O.CEDAR[0]+100,20,O.CEDAR[1])},{t:16,v:V(O.CEDAR[0]+100,700,O.CEDAR[1]+900,O.CEDAR[0]+200,0,O.CEDAR[1]-100)},{t:28,v:V(O.CEDAR[0]-400,1500,O.CEDAR[1]+1600,O.CEDAR[0]+300,0,O.CEDAR[1]-300)}]),
+    anims:[flight(A.fat[0],[fatPos,[fatPos[0]+350,fatPos[1]-30],[cOut[0],cOut[1]-250]],3,10,{parked:true,alt:80,land:false}),
+      flight(A.ch[0],[[fatPos[0]-10,fatPos[1]+95],[fatPos[0]+350,fatPos[1]+60],[cOut[0],cOut[1]+250]],9,10,{parked:true,alt:80,land:false}),
+      flight(A.ch[1],[[fatPos[0]+60,fatPos[1]-110],[fatPos[0]+400,fatPos[1]-120],[cOut[0]+200,cOut[1]-420]],15,10,{parked:true,alt:80,land:false}),
+      walk(T.sec,[O.CEDAR[0]-120,O.CEDAR[1]+70],[fatPos[0]-10,fatPos[1]+95],0,6,{pre:true,fade:9}),walk(T.seize,O.BERNESE,[fatPos[0]+60,fatPos[1]-110],2,10,{pre:true,fade:15}),walk(T.iso1,O.BP1,[fatPos[0]+60,fatPos[1]-100],4,10,{pre:true,fade:15}),walk(T.iso2,O.BP2,[fatPos[0]+70,fatPos[1]-120],4,10,{pre:true,fade:15})],
+    extra:t=>{obj.pzLights.visible=t<16;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});hoses.visible=false;obj.def.visible=t<14;obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;obj.fans.forEach(f=>f.visible=false);obj.marks.BERNESE.fill.material.opacity=0;}};
+  // 14 risk: wide, lonely high shot of the FARP far from the ISB
+  shots[13]={world:'wide',cam:camKF([{t:0,v:V(F[0]+400,1600,F[1]+1800,F[0]-600,0,F[1])},{t:20,v:V(F[0]+100,1400,F[1]+2000,F[0]-900,0,F[1]+100)}]),
+    anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
+  // 15 storm surge: objective world oblique with serials arriving
+  shots[14]={world:'obj',cam:camKF([{t:0,v:V(-1500,700,1100,O.OWL[0],0,O.OWL[1])},{t:24,v:V(-900,500,900,O.CEDAR[0],0,O.CEDAR[1])}]),
+    anims:[flight(A.ch[0],[oIn,[O.OWL[0]-200,O.OWL[1]+90],[O.OWL[0]-10,O.OWL[1]]],2,12,{takeoff:false,alt:70}),flight(A.fat[0],[[oIn[0]-120,oIn[1]+60],[O.OWL[0]-260,O.OWL[1]+150],[O.OWL[0]+40,O.OWL[1]+30]],3.2,12,{takeoff:false,alt:70}),flight(A.uh[0],[[oIn[0]-220,oIn[1]+120],[O.OWL[0]-320,O.OWL[1]+200],[O.OWL[0]+80,O.OWL[1]-30]],4.4,12,{takeoff:false,alt:65})],
+    extra:t=>{obj.def.visible=false;obj.pzLights.visible=false;hoses.visible=false}};
+  // 16 close: grand orbit of the whole board
+  shots[15]={world:'wide',cam:orbit(F[0]+200,0,F[1]-100,2300,1500,.02,0,2.2),anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+600,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],3+k*.5,20,{alt:220,land:false}))],
+    extra:t=>{wide.range.visible=false}};
+
+  /* ===== runtime ===== */
+  let shot=null,t=0,shotStart=performance.now(),last=performance.now(),mouse=[0,0],drag=null,dragOff=[0,0];
+  function setWorld(w){worldMode=w;wide.visible=w==='wide';obj.visible=w==='obj';scene.fog=w==='wide'?new THREE.FogExp2(0x070b18,.00014):new THREE.FogExp2(0x070b18,.00038);
+    if(w==='wide'){shadowBox(2400);sun.position.set(-1400,2600,-1800);sun.target.position.set(0,0,0);sun.intensity=.95;hemi.intensity=.42}else{shadowBox(950);sun.position.set(-700,1300,-500);sun.target.position.set(0,0,0);sun.intensity=1.15;hemi.intensity=.5}}
+  function startShot(i){shot=shots[i]||shots[0];t=0;setWorld(shot.world);allAC.forEach(a=>{a.visible=false;a._yaw=null;a.landing.intensity=0;a.spin=0});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x79d4ff);obj.scan.visible=false;obj.threat.visible=false;
+    if(shot.world==='obj'){obj.pzLights.visible=false;hoses.visible=false;obj.def.visible=false;obj.marks.BERNESE.fill.material.opacity=0;obj.marks.CEDAR.fill.material.opacity=0;obj.marks.BERNESE.fill.material.color.set(0xff7384)}
+    dragOff=[0,0];shotStart=performance.now();t=0;step(0,0)}
+  function step(dt,now){t=(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
+    allAC.forEach(a=>{if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation.y+=dt*(a.spin?38:0)});const bl=Math.sin(t*7+a.position.x)>.92;a.nav[2].material.opacity=bl?1:0;a.nav[0].material.opacity=a.nav[1].material.opacity=.9;const s=a.scale.x;a.nav.forEach((l,i)=>{const k=(i==2?1.3:1.8)*(worldMode==='wide'?1.4:1.3);l.scale.set(k,k,1)})});
+    wide.farpRing.material.opacity=.6+.3*Math.sin(t*2.5);wide.tgtRing.material.opacity=.6+.35*Math.sin(t*3);wide.tgtRing.scale.setScalar(1+.06*Math.sin(t*3));
+    const c=shot.cam(t);const px=c.pos[0]+dragOff[0]*0,py=c.pos[1],pz=c.pos[2];
+    camera.position.set(px+mouse[0]*22,py-mouse[1]*12,pz);
+    const look=new THREE.Vector3(c.look[0],c.look[1],c.look[2]);
+    if(dragOff[0]||dragOff[1]){const dir=look.clone().sub(camera.position);const r=dir.length();const sph=new THREE.Spherical().setFromVector3(dir);sph.theta-=dragOff[0];sph.phi=clamp(sph.phi-dragOff[1],.2,1.5);dir.setFromSpherical(sph);look.copy(camera.position).add(dir)}
+    camera.lookAt(look);}
+  function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;if(!document.hidden){step(dt,now);renderer.render(scene,camera)}requestAnimationFrame(frame)}
+  function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+  addEventListener('resize',resize);resize();
+  addEventListener('mousemove',e=>{mouse=[(e.clientX/innerWidth-.5)*2,(e.clientY/innerHeight-.5)*2];if(drag){dragOff[0]+=(e.clientX-drag[0])*.004;dragOff[1]+=(e.clientY-drag[1])*.004;drag=[e.clientX,e.clientY];dragged=true}});
+  let dragged=false;wrap.addEventListener('mousedown',e=>{if(e.target.closest('.panel,.card,.photo,button,a'))return;drag=[e.clientX,e.clientY];dragged=false});addEventListener('mouseup',()=>{drag=null});
+  requestAnimationFrame(frame);
+  return{startShot,wasDragged:()=>dragged,clearDrag:()=>{dragged=false},camera,A,T,now:()=>t};
+}
+try{if(hasGL){E=Engine();}}catch(err){console.error(err);document.getElementById('nogl').style.display='block';}
+setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?900:0);
+
+/* ---------- navigation ---------- */
+function go(n){n=Math.max(0,Math.min(slides.length-1,n));slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
+  prog.style.width=((cur+1)/slides.length*100)+'%';count.textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  [...dots.children].forEach((d,k)=>d.classList.toggle('cur',k===cur));cap.textContent=s.dataset.cap||'';cap.classList.toggle('show',caps&&!!s.dataset.cap);
+  try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
+  if(E)E.startShot(cur);if(playing)arm();}
+function replay(){slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);if(playing)arm();}
+function arm(){clearTimeout(timer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt)}
+function start(){playing=true;playBtn.classList.add('on');playBtn.querySelector('.lbl').textContent='Pause';playBtn.setAttribute('aria-label','Pause');document.getElementById('playico').innerHTML='<path d="M2 1h2v8H2zM6 1h2v8H6z"/>';if(!caps){caps=true;capBtn.classList.add('on');capBtn.setAttribute('aria-pressed','true');cap.classList.toggle('show',!!slides[cur].dataset.cap)}arm()}
+function stop(){playing=false;clearTimeout(timer);playBtn.classList.remove('on');playBtn.querySelector('.lbl').textContent='Play';playBtn.setAttribute('aria-label','Play');document.getElementById('playico').innerHTML='<path d="M2 1l7 4-7 4z"/>'}
+playBtn.addEventListener('click',()=>playing?stop():start());
+capBtn.addEventListener('click',()=>{caps=!caps;capBtn.classList.toggle('on',caps);capBtn.setAttribute('aria-pressed',String(caps));cap.classList.toggle('show',caps&&!!slides[cur].dataset.cap)});
+document.getElementById('prev').addEventListener('click',()=>go(cur-1));document.getElementById('next').addEventListener('click',()=>go(cur+1));document.getElementById('replay').addEventListener('click',replay);
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();go(cur+1)}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1)}
+  else if(e.key==='Home'){go(0)}else if(e.key==='End'){go(slides.length-1)}
+  else if(e.key==='p'||e.key==='P'){playing?stop():start()}else if(e.key==='r'||e.key==='R'){replay()}else if(e.key==='c'||e.key==='C'){capBtn.click()}});
+wrap.addEventListener('click',e=>{if(E&&E.wasDragged()){E.clearDrag();return}if(e.target.closest('.panel,.card,.photo,button,a'))return;const r=wrap.getBoundingClientRect();if((e.clientX-r.left)/r.width<.15)go(cur-1);else go(cur+1)});
+let tx=null;wrap.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});wrap.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(dx<0?cur+1:cur-1);tx=null},{passive:true});
+const m=/^#s(\d+)$/.exec(location.hash);const startAt=m?Math.min(slides.length,Math.max(1,parseInt(m[1],10)))-1:0;slides[0].classList.add('active');go(startAt);
 })();
 </script>
