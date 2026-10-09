@@ -5,7 +5,7 @@
 <style>
 /* Layout: a full-bleed WebGL night battlespace behind a fixed 1600×900 overlay stage scaled to the viewport; transport bar beneath. Palette: indigo night, moonlit type, amber for fuel, sky for aviation. Committed single dark theme. */
 :root{
-  --bg:#070b16; --glass:rgba(20,24,34,.94); --glass2:rgba(28,32,44,.96); --red:#ff3b4a;
+  --bg:#070b16; --glass:rgba(16,20,30,.62); --glass2:rgba(22,26,38,.68); --red:#ff3b4a;
   --fg:#eef0f8; --mute:#aab2cf; --dim:#6b7498; --line:rgba(238,240,248,.16);
   --amber:#f4b94a; --amber2:#ffd98a; --sky:#79d4ff; --sky2:#bfe9ff; --rose:#ff7384; --mint:#8be3b0;
   --display:'Fraunces',Georgia,'Times New Roman',serif;
@@ -38,11 +38,11 @@ p strong{color:var(--fg);font-weight:600}
 .tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);border:1px solid rgba(121,212,255,.35);border-radius:999px;padding:4px 11px}
 .tag.amber{color:var(--amber);border-color:rgba(244,185,74,.4)}
 .tag.rose{color:var(--rose);border-color:rgba(255,115,132,.4)}
-.hd{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:20px 26px 22px;display:inline-block;max-width:720px}
+.hd{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;padding:20px 26px 22px;display:inline-block;max-width:720px}
 .hd h1,.hd h2{text-shadow:none}
 .hd>p{margin-top:12px}
-.slide>p.a,.left>p.a,.right>p.a,.bottom>p.a{background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
-.foot{position:absolute;left:90px;right:90px;bottom:34px;background:rgba(20,24,34,.85);padding:8px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.slide>p.a,.left>p.a,.right>p.a,.bottom>p.a{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.foot{position:absolute;left:90px;right:90px;bottom:34px;background:rgba(16,20,30,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 
 /* glass panels */
 .panel{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:20px;padding:26px 30px;min-width:0}
@@ -318,7 +318,7 @@ p strong{color:var(--fg);font-weight:600}
       </ul></div>
   </div>
   <div class="right" style="width:420px;top:auto;bottom:84px">
-    <div class="panel a" style="--d:14s;padding:16px 22px;background:var(--glass2)"><p class="small"><strong>The jump trigger.</strong> If the site is compromised, or the second fuel site is better placed for the next turn, the FARP displaces. A jump FARP is planned to move before it has to.</p></div>
+    <div class="panel a" style="--d:14s;padding:16px 22px"><p class="small"><strong>The jump trigger.</strong> If the site is compromised, or the second fuel site is better placed for the next turn, the FARP displaces. A jump FARP is planned to move before it has to.</p></div>
   </div>
   <div class="foot"><span>Phase IV runs from first landing to last departure</span><span>12</span></div>
 </section>
@@ -343,7 +343,7 @@ p strong{color:var(--fg);font-weight:600}
           <path d="M100 75 L55 30 A64 64 0 0 1 145 30 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="4s" fill="freeze"/></path>
           <path d="M175 160 L220 115 A64 64 0 0 1 220 205 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="4.4s" fill="freeze"/></path>
           <path d="M110 250 L155 205 A64 64 0 0 1 155 295 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="4.8s" fill="freeze"/></path>
-          <path d="M100 75 L175 160 L110 250 Z" fill="rgba(244,185,74,.08)" stroke="var(--amber2)" stroke-width="1.5" stroke-dasharray="300" stroke-dashoffset="300"><animate attributeName="stroke-dashoffset" from="300" to="0" dur="1.6s" begin="2.4s" fill="freeze"/></path>
+          <path d="M100 75 L175 160 L110 250 Z" fill="rgba(217,15,42,.18)" stroke="#ff3b4a" stroke-width="2.5" stroke-dasharray="300" stroke-dashoffset="300"><animate attributeName="stroke-dashoffset" from="300" to="0" dur="1.6s" begin="2.4s" fill="freeze"/></path>
           <rect x="84" y="66" width="32" height="18" fill="var(--bg)" stroke="var(--rose)" stroke-width="1.2"/><text x="100" y="60" fill="var(--fg)" text-anchor="middle">Husky</text>
           <rect x="159" y="151" width="32" height="18" fill="var(--bg)" stroke="var(--rose)" stroke-width="1.2"/><text x="175" y="186" fill="var(--fg)" text-anchor="middle">Poodle</text>
           <rect x="94" y="241" width="32" height="18" fill="var(--bg)" stroke="var(--rose)" stroke-width="1.2"/><text x="110" y="276" fill="var(--fg)" text-anchor="middle">Bernese</text>
@@ -355,7 +355,7 @@ p strong{color:var(--fg);font-weight:600}
           <path d="M100 75 L55 30 A64 64 0 0 1 145 30 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"/>
           <path d="M175 160 L220 115 A64 64 0 0 1 220 205 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"/>
           <path d="M110 250 L155 205 A64 64 0 0 1 155 295 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"/>
-          <path d="M100 75 L175 160 L110 250 Z" fill="rgba(244,185,74,.08)" stroke="var(--amber2)" stroke-width="1.5"/>
+          <path d="M100 75 L175 160 L110 250 Z" fill="rgba(217,15,42,.18)" stroke="#ff3b4a" stroke-width="2.5"/>
           <circle cx="100" cy="75" r="6" fill="var(--bg)" stroke="var(--rose)" stroke-width="1.5"/><circle cx="175" cy="160" r="6" fill="var(--bg)" stroke="var(--rose)" stroke-width="1.5"/><circle cx="110" cy="250" r="6" fill="var(--bg)" stroke="var(--rose)" stroke-width="1.5"/>
           <text x="100" y="60" fill="var(--fg)" text-anchor="middle">MG · apex</text><text x="175" y="186" fill="var(--fg)" text-anchor="middle">MG · apex</text><text x="110" y="276" fill="var(--fg)" text-anchor="middle">MG · apex</text>
           <text x="152" y="112" fill="var(--mute)" text-anchor="middle" transform="rotate(49 152 112)">1st squad</text>
@@ -590,8 +590,8 @@ function Engine(){
     obj.fans=[fan('HUSKY',90,520),fan('POODLE',0,520),fan('BERNESE',0,520)];
     const box=(key,label,color)=>{const g=new THREE.Group();const p=O[key];g.position.set(p[0],Y,p[1]);g.add(frame(36,24,5,color));const b=new THREE.Mesh(new THREE.PlaneGeometry(36,24),flat(color,.3));b.rotation.x=-Math.PI/2;g.add(b);const s=makeLabel(label,color===CYAN?'#6f94ff':'#ffd98a',26,.2);s.position.set(0,10,32);g.add(s);obj.def.add(g);return g};
     obj.op=[box('OP1','OP · scouts',CYAN),box('OP2','OP',CYAN),box('OP3','OP',CYAN)];obj.mtr=box('MTR','Mortars · DOG 7',0xf4b94a);
-    obj.tri=segs([O.HUSKY,O.POODLE,O.BERNESE],7,0xffd98a);obj.tri.position.y=Y+2;obj.tri.visible=false;obj.add(obj.tri);
-    const ts=new THREE.Shape([O.HUSKY,O.POODLE,O.BERNESE].map(q=>new THREE.Vector2(q[0],-q[1])));obj.triFill=new THREE.Mesh(new THREE.ShapeGeometry(ts),flat(AMB,0));obj.triFill.rotation.x=-Math.PI/2;obj.triFill.position.y=Y;obj.add(obj.triFill);
+    obj.tri=segs([O.HUSKY,O.POODLE,O.BERNESE],9,0xd90f2a);obj.tri.position.y=Y+2;obj.tri.visible=false;obj.add(obj.tri);
+    const ts=new THREE.Shape([O.HUSKY,O.POODLE,O.BERNESE].map(q=>new THREE.Vector2(q[0],-q[1])));obj.triFill=new THREE.Mesh(new THREE.ShapeGeometry(ts),flat(RED,0));obj.triFill.rotation.x=-Math.PI/2;obj.triFill.position.y=Y;obj.add(obj.triFill);
     obj.threat=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff5566,transparent:true,depthWrite:false}));obj.threat.scale.set(26,26,1);obj.threat.visible=false;obj.add(obj.threat);
     obj.scan=ring(90,8,0x6f94ff);obj.scan.position.y=Y+1;obj.scan.visible=false;obj.add(obj.scan);
   })();
@@ -745,7 +745,7 @@ function Engine(){
   // The triangle
   shots[12]={world:'obj',cam:camKF([{t:0,v:V(O.TANG[0]-180,1400,O.TANG[1]+60,O.TANG[0]-180,0,O.TANG[1])},{t:14,v:V(O.TANG[0]-30,1200,O.TANG[1]+500,O.TANG[0]-180,0,O.TANG[1])},{t:34,v:V(O.TANG[0]-380,1100,O.TANG[1]+600,O.TANG[0]-180,0,O.TANG[1])}]),
     anims:[flight(A.fat[0],[fatPos,[fatPos[0]+1,fatPos[1]]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999}),walk(T.sec,[O.R3P[0]-90,O.R3P[1]+90],[O.R3P[0]-90,O.R3P[1]+90],0,1,{pre:true}),walk(T.pf,O.CEDAR,O.CEDAR,0,1,{pre:true}),walk(T.seize,O.HUSKY,O.HUSKY,0,1,{pre:true}),walk(T.iso7,O.POODLE,O.POODLE,0,1,{pre:true}),walk(T.iso6,O.BERNESE,O.BERNESE,0,1,{pre:true})],
-    extra:t=>{obj.pzLights.visible=true;hoses.visible=true;hA.geometry.setDrawRange(0,Infinity);hB.geometry.setDrawRange(0,Infinity);obj.def.visible=true;obj.fans.forEach((f,i)=>{f.visible=t>4+i*.4;f.material.opacity=.58+.08*Math.sin(t*2+i)});obj.op.forEach(o=>o.visible=t>12);obj.mtr.visible=t>18;obj.tri.visible=t>2;obj.triFill.material.opacity=t>2?.08+.03*Math.sin(t*2):0;obj.cedarFill.material.opacity=t>18?.35:.2;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.5;obj.marks[k].fill.material.color.set(0x22d35a)});}};
+    extra:t=>{obj.pzLights.visible=true;hoses.visible=true;hA.geometry.setDrawRange(0,Infinity);hB.geometry.setDrawRange(0,Infinity);obj.def.visible=true;obj.fans.forEach((f,i)=>{f.visible=t>4+i*.4;f.material.opacity=.58+.08*Math.sin(t*2+i)});obj.op.forEach(o=>o.visible=t>12);obj.mtr.visible=t>18;obj.tri.visible=t>2;obj.triFill.material.opacity=t>2?.16+.04*Math.sin(t*2):0;obj.cedarFill.material.opacity=t>18?.35:.2;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.5;obj.marks[k].fill.material.color.set(0x22d35a)});}};
   // Collapse
   shots[13]={world:'obj',cam:camKF([{t:0,v:V(O.R3P[0]-300,220,O.R3P[1]+420,O.R3P[0],0,O.R3P[1])},{t:8,v:V(O.R3P[0]-200,260,O.R3P[1]+420,O.R3P[0]+100,20,O.R3P[1])},{t:16,v:V(O.R3P[0]+100,700,O.R3P[1]+900,O.R3P[0]+200,0,O.R3P[1]-100)},{t:28,v:V(O.R3P[0]-400,1500,O.R3P[1]+1600,O.R3P[0]+300,0,O.R3P[1]-300)}]),
     anims:[flight(A.fat[0],[fatPos,[fatPos[0]+350,fatPos[1]-30],[cOut[0],cOut[1]-250]],3,10,{parked:true,alt:80,land:false}),
