@@ -380,7 +380,7 @@ p strong{color:var(--fg);font-weight:600}
     <div class="panel a" style="--d:1s;flex:1"><div class="tag">Sources</div>
       <p class="small" style="margin-top:12px;font-size:14.5px">Doctrinal framing draws on FM 3-04 <em>Army Aviation</em>, ATP 3-04.17 <em>Techniques for Forward Arming and Refueling Points</em>, and FM 3-99 <em>Airborne and Air Assault Operations</em>.</p>
       <p class="small" style="margin-top:10px;font-size:14.5px">Distances, task organization, lifts, phasing, timeline, deliverables, aerial imagery and load plans are from the Dog Company J-FARP Seizure CONOP and the Operation Storm Surge AMCM / AMB deck of 06 OCT 26.</p>
-      <p class="small" style="margin-top:10px;font-size:14.5px">The wide-area terrain is a synthetic rendering of the CONOP's concept sketch. Phase II team-to-zone assignments and the Phase IV layout are illustrative.</p></div>
+      <p class="small" style="margin-top:10px;font-size:14.5px">The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Phase II team-to-zone assignments and the Phase IV layout are illustrative.</p></div>
   </div>
   <div class="foot"><span>Dog Company · 2-506 IN · 6-101 CAB</span><span>16 · end</span></div>
 </section>
@@ -427,16 +427,9 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
 
 /* wide-world terrain height (x east, z south) */
-const W={ISB:[-1550,650],FARP:[150,40],CITY:[1650,-600],LAKE:[950,-250],MASSIF:[-650,-150]};
-function hW(x,z){
-  let h=fbm(x/700+3,z/700+7,5)*140-50+fbm(x/180+5,z/180+1,3)*22;
-  h+=sstep(-550,-1000,z)*(240+fbm(x/260,z/260,5)*320);h+=sstep(900,1400,z)*(120+fbm(x/300+2,z/300,4)*200);
-  const dm=Math.hypot(x-W.MASSIF[0],z-W.MASSIF[1]);h+=Math.pow(Math.max(0,1-dm/460),1.2)*(260+fbm(x/110+9,z/110,5)*300);const dm2=Math.hypot(x+1250,z+450);h+=Math.pow(Math.max(0,1-dm2/380),1.3)*(200+fbm(x/130+4,z/130+8,4)*220);
-  const dl=Math.hypot(x-W.LAKE[0],z-W.LAKE[1]);h=lerp(h,-28,sstep(470,300,dl));
-  const flat=(cx,cz,r,v)=>{const d=Math.hypot(x-cx,z-cz);h=lerp(h,v,sstep(r,r*.55,d))};
-  flat(W.ISB[0],W.ISB[1],330,6);flat(W.FARP[0],W.FARP[1],230,14);flat(W.CITY[0],W.CITY[1],360,8);
-  return h;
-}
+const W={ISB:[44,-61],FARP:[1566,280],CITY:[2858,690],RWY:[[-96,-609],[184,487]]};
+const WX=6400,WZ=1936,WN=512,WM=154;let whm=null;
+function hW(x,z){if(!whm)return 0;const u=clamp((x/WX+.5)*(WN-1),0,WN-1.001),v=clamp((z/WZ+.5)*(WM-1),0,WM-1.001);const i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j;const H=(a,b)=>whm[b*WN+a];return lerp(lerp(H(i,j),H(i+1,j),fu),lerp(H(i,j+1),H(i+1,j+1),fu),fv)}
 function makeLabel(text,color,size,w){
   const c=document.createElement('canvas');const s=size||26;c.width=512;c.height=96;const g=c.getContext('2d');
   g.font=`500 ${s}px "IBM Plex Mono", monospace`;g.textAlign='center';g.textBaseline='middle';g.letterSpacing='3px';
@@ -466,49 +459,38 @@ function Engine(){
   function shadowBox(s){const c=sun.shadow.camera;c.left=-s;c.right=s;c.top=s;c.bottom=-s;c.updateProjectionMatrix();}
   const amb=new THREE.AmbientLight(0x2a3650,.25);scene.add(amb);
 
-  /* ===== WIDE WORLD ===== */
-  const wide=new THREE.Group();scene.add(wide);
-  (function buildWide(){
-    const sx=6000,sz=3400,nx=300,nz=170;
-    const g=new THREE.PlaneGeometry(sx,sz,nx,nz);g.rotateX(-Math.PI/2);
-    const pos=g.attributes.position,col=new Float32Array(pos.count*3);
-    const cLow=new THREE.Color(0x2c5226),cField=new THREE.Color(0x66552f),cMid=new THREE.Color(0x56503a),cRock=new THREE.Color(0x4b4845),cSnow=new THREE.Color(0xc6ced8),cBed=new THREE.Color(0x3c3527);
-    for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);const h=hW(x,z);pos.setY(i,h);
-      const n=fbm(x/140+1,z/140+2,3);let c=cLow.clone().lerp(cField,sstep(.35,.7,n));
-      c.lerp(cMid,sstep(40,140,h));c.lerp(cRock,sstep(150,260,h));c.lerp(cSnow,sstep(330,430,h));
-      const dl=Math.hypot(x-W.LAKE[0],z-W.LAKE[1]);c.lerp(cBed,sstep(470,330,dl));
-      const dc=Math.hypot(x-W.CITY[0],z-W.CITY[1]);c.lerp(new THREE.Color(0x4a4a4e),sstep(360,220,dc));
-      const di=Math.hypot(x-W.ISB[0],z-W.ISB[1]);c.lerp(new THREE.Color(0x5a5f55),sstep(300,200,di));
-      const df=Math.hypot(x-W.FARP[0],z-W.FARP[1]);c.lerp(new THREE.Color(0x5f7a3a),sstep(220,120,df));
-      col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
-    g.setAttribute('color',new THREE.BufferAttribute(col,3));g.computeVertexNormals();
-    const grain=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const g2=c.getContext('2d');const im=g2.createImageData(256,256);for(let i=0;i<256*256;i++){const x=i%256,y=(i/256)|0;const v=140+fbm(x/18,y/18,4)*90+ (Math.random()-.5)*40;im.data[i*4]=im.data[i*4+1]=im.data[i*4+2]=v;im.data[i*4+3]=255}g2.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(60,34);return t})();
-    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,map:grain,roughness:.95,metalness:0}));m.receiveShadow=true;wide.add(m);
-    // bedrock skirt like the concept board
-    const skirt=new THREE.Mesh(new THREE.BoxGeometry(sx,320,sz),new THREE.MeshStandardMaterial({color:0x2a211b,roughness:1}));skirt.position.y=-230;wide.add(skirt);
-    // water
-    const water=new THREE.Mesh(new THREE.CircleGeometry(400,64),new THREE.MeshStandardMaterial({color:0x1d5a9a,emissive:0x1f66b4,emissiveIntensity:.55,roughness:.25,metalness:0,transparent:true,opacity:.95}));water.rotation.x=-Math.PI/2;water.position.set(W.LAKE[0],-6,W.LAKE[1]);wide.add(water);
-    // city
-    const N=420,inst=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0x1c2027,roughness:.8,emissive:0xffb466,emissiveIntensity:0}),N);
-    const win=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g2=c.getContext('2d');g2.fillStyle='#000';g2.fillRect(0,0,64,64);for(let y=3;y<64;y+=6)for(let x=3;x<64;x+=6){if(Math.random()<.4){g2.fillStyle=Math.random()<.75?'#ffc784':'#9fd4ff';g2.fillRect(x,y,2,3)}}const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;return t})();
+  /* ===== WIDE WORLD (rectified terrain boards draped on an image-derived heightmap) ===== */
+  const wide=new THREE.Group();scene.add(wide);let wideReady=false;
+  function buildWide(tex,himg){
+    const c=document.createElement('canvas');c.width=WN;c.height=WM;const g2=c.getContext('2d');g2.drawImage(himg,0,0,WN,WM);const d=g2.getImageData(0,0,WN,WM).data;
+    whm=new Float32Array(WN*WM);for(let k=0;k<WN*WM;k++)whm[k]=d[k*4]/255*520-60;
+    const g=new THREE.PlaneGeometry(WX,WZ,448,136);g.rotateX(-Math.PI/2);const pos=g.attributes.position;
+    for(let k=0;k<pos.count;k++){pos.setY(k,hW(pos.getX(k),pos.getZ(k)))}g.computeVertexNormals();
+    tex.encoding=THREE.sRGBEncoding;tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+    const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:tex,roughness:.95,metalness:0}));m.receiveShadow=true;wide.add(m);
+    const skirt=new THREE.Mesh(new THREE.BoxGeometry(WX,320,WZ),new THREE.MeshStandardMaterial({color:0x2a211b,roughness:1}));skirt.position.y=-230;wide.add(skirt);
+    // deep target: lit buildings over the lakeside town
+    const N=200,inst=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0x1c2027,roughness:.8,emissive:0xffb466,emissiveIntensity:0}),N);
+    const win=(()=>{const c2=document.createElement('canvas');c2.width=c2.height=64;const q=c2.getContext('2d');q.fillStyle='#000';q.fillRect(0,0,64,64);for(let y=3;y<64;y+=6)for(let x=3;x<64;x+=6){if(Math.random()<.4){q.fillStyle=Math.random()<.75?'#ffc784':'#9fd4ff';q.fillRect(x,y,2,3)}}const t=new THREE.CanvasTexture(c2);t.magFilter=THREE.NearestFilter;return t})();
     inst.material.emissiveMap=win;inst.material.emissiveIntensity=2.4;
-    const d=new THREE.Object3D();let k=0;
-    for(let i=0;i<N;i++){const r=Math.sqrt(Math.random())*300,a=Math.random()*Math.PI*2;const x=W.CITY[0]+Math.cos(a)*r*1.2,z=W.CITY[1]+Math.sin(a)*r*.8;const h=10+Math.pow(Math.random(),2.2)*90*(1-r/320)+6;d.position.set(x,hW(x,z)+h/2,z);d.scale.set(8+Math.random()*12,h,8+Math.random()*12);d.rotation.y=Math.round(Math.random()*4)*Math.PI/2;d.updateMatrix();inst.setMatrixAt(k++,d.matrix)}
+    const dd=new THREE.Object3D();for(let k=0;k<N;k++){const r=Math.sqrt(Math.random())*130,a=Math.random()*Math.PI*2;const x=W.CITY[0]+Math.cos(a)*r*1.3,z=W.CITY[1]+Math.sin(a)*r*.8;const h=5+Math.pow(Math.random(),2.2)*30*(1-r/150)+3;dd.position.set(x,hW(x,z)+h/2,z);dd.scale.set(5+Math.random()*7,h,5+Math.random()*7);dd.rotation.y=Math.round(Math.random()*4)*Math.PI/2;dd.updateMatrix();inst.setMatrixAt(k,dd.matrix)}
     inst.castShadow=true;wide.add(inst);
-    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffa050,transparent:true,opacity:.35,depthWrite:false}));glow.scale.set(1100,600,1);glow.material.opacity=.45;glow.position.set(W.CITY[0],60,W.CITY[1]);wide.add(glow);
-    // ISB airfield
-    const rw=new THREE.Mesh(new THREE.PlaneGeometry(560,46),new THREE.MeshStandardMaterial({color:0x23262c,roughness:.9}));rw.rotation.x=-Math.PI/2;rw.rotation.z=.25;rw.position.set(W.ISB[0],7.2,W.ISB[1]);rw.receiveShadow=true;wide.add(rw);
-    const apron=new THREE.Mesh(new THREE.PlaneGeometry(260,180),new THREE.MeshStandardMaterial({color:0x2a2d33,roughness:.9}));apron.rotation.x=-Math.PI/2;apron.position.set(W.ISB[0]+60,7.1,W.ISB[1]+120);wide.add(apron);
-    const ep=[];for(let i=-13;i<=13;i++){const x=i*21;for(const s of[-25,25]){const px=W.ISB[0]+x*Math.cos(.25)+s*Math.sin(.25),pz=W.ISB[1]-x*Math.sin(.25)+s*Math.cos(.25);ep.push(px,8.5,pz)}}
-    const eg=new THREE.BufferGeometry();eg.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));wide.add(new THREE.Points(eg,new THREE.PointsMaterial({color:0xbfd4ff,size:9,sizeAttenuation:true,map:GLOW,transparent:true,depthWrite:false})));
-    for(let i=0;i<3;i++){const hg=new THREE.Mesh(new THREE.BoxGeometry(70,22,40),new THREE.MeshStandardMaterial({color:0x3a3d44,roughness:.8}));hg.position.set(W.ISB[0]-120+i*90,18,W.ISB[1]+230);hg.castShadow=true;wide.add(hg)}
-    // FARP clearing marker (amber ring) and target ring
-    wide.farpRing=ring(140,8,0xf4b94a);wide.farpRing.position.set(W.FARP[0],hW(W.FARP[0],W.FARP[1])+2,W.FARP[1]);wide.add(wide.farpRing);
-    wide.tgtRing=ring(170,10,0xff7384);wide.tgtRing.position.set(W.CITY[0],hW(W.CITY[0],W.CITY[1])+3,W.CITY[1]);wide.add(wide.tgtRing);
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffa050,transparent:true,opacity:.4,depthWrite:false}));glow.scale.set(700,380,1);glow.position.set(W.CITY[0],hW(W.CITY[0],W.CITY[1])+40,W.CITY[1]);wide.add(glow);
+    // staging base: runway edge lights on the airfield in the imagery
+    const [ra,rb]=W.RWY;const ep=[];const dx=rb[0]-ra[0],dz=rb[1]-ra[1],len=Math.hypot(dx,dz),nx=-dz/len,nz=dx/len;
+    for(let k=0;k<=30;k++){const u=k/30;const x=ra[0]+dx*u,z=ra[1]+dz*u;for(const sgn of[-1,1]){const px=x+nx*sgn*16,pz=z+nz*sgn*16;ep.push(px,hW(px,pz)+3,pz)}}
+    const eg=new THREE.BufferGeometry();eg.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));wide.add(new THREE.Points(eg,new THREE.PointsMaterial({color:0xbfd4ff,size:7,sizeAttenuation:true,map:GLOW,transparent:true,depthWrite:false})));
+    // markers
+    wide.farpRing=ring(120,7,0xf4b94a);wide.farpRing.position.set(W.FARP[0],hW(W.FARP[0],W.FARP[1])+3,W.FARP[1]);wide.add(wide.farpRing);
+    wide.tgtRing=ring(150,9,0xff7384);wide.tgtRing.position.set(W.CITY[0],hW(W.CITY[0],W.CITY[1])+4,W.CITY[1]);wide.add(wide.tgtRing);
     wide.range=groundRing(0x79d4ff);wide.range.visible=false;wide.add(wide.range);
     const L=(t,c,x,z,y)=>{const s=makeLabel(t,c,26,.34);s.position.set(x,(y||hW(x,z))+70,z);wide.add(s);return s};
-    L('Staging base · ISB','#eef0f8',W.ISB[0],W.ISB[1]+40);wide.farpLabel=L('J-FARP site','#ffd98a',W.FARP[0],W.FARP[1]+30);L('Division deep target','#ff9aa6',W.CITY[0],W.CITY[1]+120,hW(W.CITY[0],W.CITY[1])+120);
-  })();
+    L('Staging base · ISB','#eef0f8',W.ISB[0],W.ISB[1]+60);wide.farpLabel=L('J-FARP site','#ffd98a',W.FARP[0],W.FARP[1]+30);L('Division deep target','#ff9aa6',W.CITY[0],W.CITY[1]+120,hW(W.CITY[0],W.CITY[1])+60);
+    wideReady=true;
+  }
+  (function loadWide(){const tl=new THREE.TextureLoader();let tex=null,him=null;const done=()=>{if(tex&&him){try{buildWide(tex,him)}catch(e){console.error(e)}finally{onWideReady()}}};
+    tl.load('assets/wide.jpg',t=>{tex=t;done()},undefined,()=>onWideReady());
+    const im=new Image();im.onload=()=>{him=im;done()};im.onerror=()=>onWideReady();im.src='assets/wide-h.png';})();
   function groundRing(color){const N=180;const g=new THREE.BufferGeometry();const pos=new Float32Array((N+1)*2*3);g.setAttribute('position',new THREE.BufferAttribute(pos,3));const idx=[];for(let i=0;i<N;i++){const a=i*2,b=a+1,c=a+2,d=a+3;idx.push(a,b,c,b,d,c)}g.setIndex(idx);const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false}));m.set=(cx,cz,R,w)=>{for(let i=0;i<=N;i++){const a=i/N*Math.PI*2,cs=Math.cos(a),sn=Math.sin(a);for(let k=0;k<2;k++){const r=R+(k?w/2:-w/2),x=cx+cs*r,z=cz+sn*r,o=(i*2+k)*3;pos[o]=x;pos[o+1]=hW(x,z)+16;pos[o+2]=z}}g.attributes.position.needsUpdate=true;g.computeBoundingSphere()};return m}
   function ring(r,w,color){const m=new THREE.Mesh(new THREE.RingGeometry(r-w/2,r+w/2,96),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false}));m.rotation.x=-Math.PI/2;return m}
 
@@ -644,8 +626,10 @@ function Engine(){
   function orbit(cx,cy,cz,r,h,w,t0,a0){return t=>{const a=(a0||0)+(t-(t0||0))*w;return{pos:[cx+Math.cos(a)*r,cy+h,cz+Math.sin(a)*r],look:[cx,cy,cz]}}}
 
   /* ===== shots per slide ===== */
+  let shots=[],pendingShot=null;
+  function buildShots(){
   const F=W.FARP,I=W.ISB,C=W.CITY;const fy=hW(F[0],F[1]),iy=hW(I[0],I[1]),cy=hW(C[0],C[1]);
-  const isbPark=(k)=>[I[0]+30+k*55,I[1]+120];
+  const isbPark=(k)=>[I[0]-20+k*18,I[1]+200+k*70];
   const shots=[];
   // 1 title: slow push from the ISB toward the FARP
   shots[0]={world:'wide',cam:camKF([{t:0,v:V(I[0]-500,900,I[1]+1500,F[0]-600,0,F[1])},{t:16,v:V(I[0]+200,620,I[1]+900,F[0],0,F[1])}]),
@@ -653,14 +637,14 @@ function Engine(){
   // 2 reach: AH-64 pair launches, range ring grows, they turn back
   shots[1]={world:'wide',cam:camKF([{t:0,v:V(I[0]-300,1500,I[1]+1200,F[0]-200,0,F[1]-100)},{t:12,v:V(F[0]-600,1300,F[1]+1500,F[0]+300,0,F[1]-200)},{t:20,v:V(F[0]-100,1100,F[1]+1700,F[0]+500,0,F[1]-300)}]),
     anims:[...A.ah.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*40],[F[0]-150,F[1]+40+k*40],[F[0]-250,F[1]+300+k*40],[F[0]-700,F[1]+500+k*40]],1+k*.4,19,{parked:true,land:false,alt:200}))],
-    extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),26);wide.range.material.opacity=.65;}};
+    extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),40);wide.range.material.opacity=.8;}};
   // 3 doctrine: orbit the FARP site with a fuel chinook sitting on it
   shots[2]={world:'wide',cam:orbit(F[0],fy,F[1],520,260,.045,0,2.6),
     anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
   // 4 why: ring recentres on the FARP, AH-64s reach the city
   shots[3]={world:'wide',cam:camKF([{t:0,v:V(F[0]-900,1000,F[1]+1600,F[0]+400,0,F[1]-200)},{t:14,v:V(F[0]+200,1200,F[1]+1500,C[0]-300,0,C[1])},{t:24,v:V(C[0]-700,700,C[1]+1100,C[0],0,C[1])}]),
     anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+500,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],2+k*.5,16,{alt:200,land:false}))],
-    extra:t=>{wide.range.visible=t>1;wide.range.set(F[0],F[1],lerp(10,1150,ease((t-1)/6)),26);wide.range.material.color.set(0xf4b94a);wide.range.material.opacity=.45;}};
+    extra:t=>{wide.range.visible=t>1;wide.range.set(F[0],F[1],lerp(10,1150,ease((t-1)/6)),40);wide.range.material.color.set(0xf4b94a);wide.range.material.opacity=.45;}};
   // 5 concept: three lifts, cinematic follow
   shots[4]={world:'wide',cam:camKF([{t:0,v:V(I[0]-700,700,I[1]+900,I[0],0,I[1])},{t:4,v:chase(A.ch[0],-380,120,-260)},{t:12,v:chase(A.ch[0],-380,120,-260)},{t:16,v:V(F[0]-300,900,F[1]+1300,F[0],0,F[1])},{t:24,v:V(F[0]-100,620,F[1]+900,F[0],0,F[1])},{t:30,v:V(F[0]+300,900,F[1]+1200,C[0]-400,0,C[1])},{t:40,v:V(C[0]-800,500,C[1]+800,C[0],0,C[1])}]),
     anims:[...A.ch.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*150],[F[0]-60+k*70,F[1]-60+k*110]],1+k*.9,13,{parked:true,alt:170+k*25})),
@@ -713,7 +697,7 @@ function Engine(){
       walk(T.sec,[O.CEDAR[0]-120,O.CEDAR[1]+70],[fatPos[0]-10,fatPos[1]+95],0,6,{pre:true,fade:9}),walk(T.seize,O.BERNESE,[fatPos[0]+60,fatPos[1]-110],2,10,{pre:true,fade:15}),walk(T.iso1,O.BP1,[fatPos[0]+60,fatPos[1]-100],4,10,{pre:true,fade:15}),walk(T.iso2,O.BP2,[fatPos[0]+70,fatPos[1]-120],4,10,{pre:true,fade:15})],
     extra:t=>{obj.pzLights.visible=t<16;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});hoses.visible=false;obj.def.visible=t<14;obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;obj.fans.forEach(f=>f.visible=false);obj.marks.BERNESE.fill.material.opacity=0;}};
   // 14 risk: wide, lonely high shot of the FARP far from the ISB
-  shots[13]={world:'wide',cam:camKF([{t:0,v:V(F[0]+400,1600,F[1]+1800,F[0]-600,0,F[1])},{t:20,v:V(F[0]+100,1400,F[1]+2000,F[0]-900,0,F[1]+100)}]),
+  shots[13]={world:'wide',cam:camKF([{t:0,v:V(F[0]+500,1500,F[1]+1000,F[0]-900,0,F[1]-200)},{t:20,v:V(F[0]+200,1700,F[1]+900,F[0]-1200,0,F[1]-100)}]),
     anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
   // 15 storm surge: objective world oblique with serials arriving
   shots[14]={world:'obj',cam:camKF([{t:0,v:V(-1500,700,1100,O.OWL[0],0,O.OWL[1])},{t:24,v:V(-900,500,900,O.CEDAR[0],0,O.CEDAR[1])}]),
@@ -723,11 +707,13 @@ function Engine(){
   shots[15]={world:'wide',cam:orbit(F[0]+200,0,F[1]-100,2300,1500,.02,0,2.2),anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+600,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],3+k*.5,20,{alt:220,land:false}))],
     extra:t=>{wide.range.visible=false}};
 
+  return shots;}
+  function onWideReady(){if(!shots.length){shots=buildShots();if(pendingShot!=null){const k=pendingShot;pendingShot=null;startShot(k)}}document.getElementById('load').classList.add('off')}
   /* ===== runtime ===== */
   let shot=null,t=0,shotStart=performance.now(),last=performance.now(),mouse=[0,0],drag=null,dragOff=[0,0];
   function setWorld(w){worldMode=w;wide.visible=w==='wide';obj.visible=w==='obj';scene.fog=w==='wide'?new THREE.FogExp2(0x070b18,.00014):new THREE.FogExp2(0x070b18,.00038);
-    if(w==='wide'){shadowBox(2400);sun.position.set(-1400,2600,-1800);sun.target.position.set(0,0,0);sun.intensity=.95;hemi.intensity=.42}else{shadowBox(950);sun.position.set(-700,1300,-500);sun.target.position.set(0,0,0);sun.intensity=1.15;hemi.intensity=.5}}
-  function startShot(i){shot=shots[i]||shots[0];t=0;setWorld(shot.world);allAC.forEach(a=>{a.visible=false;a._yaw=null;a.landing.intensity=0;a.spin=0});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x79d4ff);obj.scan.visible=false;obj.threat.visible=false;
+    if(w==='wide'){shadowBox(3400);sun.position.set(-1400,2600,-1800);sun.target.position.set(0,0,0);sun.intensity=.95;hemi.intensity=.42}else{shadowBox(950);sun.position.set(-700,1300,-500);sun.target.position.set(0,0,0);sun.intensity=1.15;hemi.intensity=.5}}
+  function startShot(i){if(!shots.length){pendingShot=i;return}shot=shots[i]||shots[0];t=0;setWorld(shot.world);allAC.forEach(a=>{a.visible=false;a._yaw=null;a.landing.intensity=0;a.spin=0});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x79d4ff);obj.scan.visible=false;obj.threat.visible=false;
     if(shot.world==='obj'){obj.pzLights.visible=false;hoses.visible=false;obj.def.visible=false;obj.marks.BERNESE.fill.material.opacity=0;obj.marks.CEDAR.fill.material.opacity=0;obj.marks.BERNESE.fill.material.color.set(0xff7384)}
     dragOff=[0,0];shotStart=performance.now();t=0;step(0,0)}
   function step(dt,now){t=(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
@@ -747,7 +733,7 @@ function Engine(){
   return{startShot,wasDragged:()=>dragged,clearDrag:()=>{dragged=false},camera,A,T,now:()=>t};
 }
 try{if(hasGL){E=Engine();}}catch(err){console.error(err);document.getElementById('nogl').style.display='block';}
-setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?900:0);
+setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?15000:0);
 
 /* ---------- navigation ---------- */
 function go(n){n=Math.max(0,Math.min(slides.length-1,n));slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
