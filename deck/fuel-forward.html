@@ -1,6 +1,7 @@
 <title>Fuel Forward</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="assets/gltfloader.js"></script>
 <style>
 /* Layout: a full-bleed WebGL night battlespace behind a fixed 1600×900 overlay stage scaled to the viewport; transport bar beneath. Palette: indigo night, moonlit type, amber for fuel, sky for aviation. Committed single dark theme. */
 :root{
@@ -431,7 +432,7 @@ p strong{color:var(--fg);font-weight:600}
     <div class="panel a" style="--d:1s;flex:1"><div class="tag">Sources</div>
       <p class="small" style="margin-top:12px;font-size:14.5px">Doctrinal framing draws on FM 3-04 <em>Army Aviation</em>, ATP 3-04.17 <em>Techniques for Forward Arming and Refueling Points</em>, and FM 3-99 <em>Airborne and Air Assault Operations</em>.</p>
       <p class="small" style="margin-top:10px;font-size:14.5px">Distances, task organization, lifts, phasing, timeline, deliverables, aerial imagery, the operations graphic and apron photographs are from the Dog Company J-FARP Seizure CONOP and the Operation Storm Surge AMCM / AMB deck of 06 OCT 26.</p>
-      <p class="small" style="margin-top:10px;font-size:14.5px">The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Chalk-to-zone and objective assignments follow the Ground Task Force slide; observation post and mortar positions are illustrative.</p></div>
+      <p class="small" style="margin-top:10px;font-size:14.5px">The CH-47 is the unit-supplied Chinook model and texture set. The UH-60 and AH-64 remain icons. The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Chalk-to-zone and objective assignments follow the Ground Task Force slide; observation post and mortar positions are illustrative.</p></div>
   </div>
   <div class="foot"><span>Dog Company · 2-506 IN · 6-101 CAB</span><span>17 · end</span></div>
 </section>
@@ -509,6 +510,7 @@ function Engine(){
   sun.shadow.camera.near=100;sun.shadow.camera.far=9000;sun.shadow.bias=-0.0006;scene.add(sun);scene.add(sun.target);
   function shadowBox(s){const c=sun.shadow.camera;c.left=-s;c.right=s;c.top=s;c.bottom=-s;c.updateProjectionMatrix();}
   const amb=new THREE.AmbientLight(0x2a3650,.25);scene.add(amb);
+  const fill=new THREE.PointLight(0xdfe6ff,.9,0,1.2);camera.add(fill);scene.add(camera);
 
   /* ===== WIDE WORLD (rectified terrain boards draped on an image-derived heightmap) ===== */
   const wide=new THREE.Group();scene.add(wide);let wideReady=false;
@@ -613,10 +615,24 @@ function Engine(){
     g.rotors=[];ROT[kind].forEach(([x,z,fr],k)=>{const r=rotorDisc(128*fr*sc,kind==='ch47'?3:4);r.position.set(x*sc,1.2,z*sc);g.add(r);g.rotors.push(r)});
     const shadow=new THREE.Mesh(new THREE.PlaneGeometry(512*sc,256*sc),new THREE.MeshBasicMaterial({map:ICON[kind],transparent:true,opacity:.35,depthWrite:false,color:0x000000}));shadow.rotation.order='YXZ';shadow.rotation.x=-Math.PI/2;scene.add(shadow);shadow.visible=false;g.shadow=shadow;
     g.nav=[lamp(0xff3b3b,0,2,-len*.22,len*.07),lamp(0x37ff6a,0,2,len*.22,len*.07),lamp(0xffffff,-len*.3,2,0,len*.05)];g.nav.forEach(l=>g.add(l));
-    g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;return g}
+    g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;g.lift=2.5;return g}
   function lamp(color,x,y,z,s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false}));sp.scale.set(s,s,1);sp.position.set(x,y,z);return sp}
-  const A={ch:[makeIcon('ch47',70),makeIcon('ch47',70)],uh:[makeIcon('uh60',52)],fat:[makeIcon('ch47',70),makeIcon('ch47',70)],ah:[makeIcon('ah64',50),makeIcon('ah64',50)]};
-  A.fat.forEach(a=>{a.children[0].material=a.children[0].material.clone();a.children[0].material.color.set(0xf4b94a)});
+  /* ===== CH-47: the supplied Chinook model with its PBR texture set ===== */
+  const CH47={proto:null,waiting:[]};
+  function makeModel(kind,len,fuel){const g=new THREE.Group();g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;g.lift=0;g.rotors=[];g.fuel=!!fuel;
+    const shadow=new THREE.Mesh(new THREE.PlaneGeometry(len*1.1,len*.5),new THREE.MeshBasicMaterial({map:GLOW,transparent:true,opacity:.45,depthWrite:false,color:0x000000}));shadow.rotation.order='YXZ';shadow.rotation.x=-Math.PI/2;scene.add(shadow);shadow.visible=false;g.shadow=shadow;
+    g.nav=[lamp(0xff3b3b,-len*.05,len*.1,-len*.075,len*.07),lamp(0x37ff6a,-len*.05,len*.1,len*.075,len*.07),lamp(0xffffff,-len*.52,len*.1,0,len*.05)];g.nav.forEach(l=>g.add(l));
+    if(fuel){const b=lamp(0xffb040,-len*.3,len*.26,0,len*.1);g.add(b);g.beacon=b}
+    const attach=()=>{const m=CH47.proto.clone(true);const sc=len/30.1;m.scale.setScalar(sc);g.add(m);g.rotors=[];m.traverse(o=>{if(o.isMesh&&o.name.startsWith('rotor')){const disc=new THREE.Mesh(new THREE.CircleGeometry(9.2,48),new THREE.MeshBasicMaterial({color:0x9aa0aa,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));disc.rotation.x=-Math.PI/2;o.add(disc);g.rotors.push({blades:o,disc,dir:o.name==='rotorF'?1:-1})}})};
+    if(CH47.proto)attach();else CH47.waiting.push(attach);return g}
+  (function loadCH47(){const tl=new THREE.TextureLoader();const T={};let n=0;const want={map:'assets/ch47_albedo.jpg',normalMap:'assets/ch47_normal.jpg',orm:'assets/ch47_orm.jpg'};
+    const ready=()=>{if(n<3||!CH47.glb)return;const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:0x1c2214,emissiveIntensity:.5});
+      const dark=new THREE.MeshStandardMaterial({color:0x101216,roughness:.4,metalness:.2});
+      CH47.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:mat;o.castShadow=true}});
+      CH47.proto=CH47.glb;CH47.waiting.forEach(f=>f());CH47.waiting=[]};
+    for(const k in want)tl.load(want[k],t=>{if(k==='map')t.encoding=THREE.sRGBEncoding;T[k]=t;n++;ready()});
+    if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/ch47.glb',g=>{CH47.glb=g.scene;ready()},undefined,e=>console.error(e));})();
+  const A={ch:[makeModel('ch47',46),makeModel('ch47',46)],uh:[makeIcon('uh60',52)],fat:[makeModel('ch47',46,true),makeModel('ch47',46,true)],ah:[makeIcon('ah64',50),makeIcon('ah64',50)]};
   const allAC=[...A.ch,...A.uh,...A.fat,...A.ah];allAC.forEach(a=>scene.add(a));
   const SCALE={wide:5.5,obj:1};
   /* ===== dismounted troops: the GTF slide's soldier silhouette ===== */
@@ -645,7 +661,7 @@ function Engine(){
       const ue=ease(u);const p=curve.getPointAt(ue),tg=curve.getTangentAt(Math.min(ue,.999));
       let env=1;if(takeoff)env*=sstep(0,.18,u);if(land)env*=sstep(1,.8,u);
       const g=gY(p.x,p.z);const lift=(t<t0)?0:env;const alt=cruise*lift+Math.sin(t*1.3)*lift*(worldMode==='wide'?3:1.5);
-      ac.position.set(p.x,g+2.5*sc+alt,p.z);ac.alt=alt;
+      ac.position.set(p.x,g+ac.lift*sc+alt,p.z);ac.alt=alt;
       const yaw=Math.atan2(-tg.z,tg.x);if(t>=t0&&t<=t0+dur)ac.rotation.y=yaw;
       ac.spin=(t>t0-3&&(t<t0+dur+(o.spinAfter==null?6:o.spinAfter)))?1:0;
     }}
@@ -746,7 +762,7 @@ function Engine(){
   function startShot(i){if(!shots.length){pendingShot=i;return}shot=shots[i]||shots[0];setWorld(shot.world);allAC.forEach(a=>{a.visible=false;a.shadow.visible=false;a.spin=0});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x79d4ff);resetObj();
     dragOff=[0,0];shotStart=performance.now();t=0;step(0,performance.now())}
   function step(dt,now){t=(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
-    allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation.y+=dt*(a.spin?30:0);r.children[0].material.opacity=a.spin?.3:.08});
+    allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation.y+=dt*(a.spin?30:0)*(r.dir||1);const d=r.disc||r.children[0];if(d)d.material.opacity=a.spin?(r.disc?.22:.3):(r.disc?0:.08)});if(a.beacon)a.beacon.material.opacity=.5+.5*Math.sin(t*6);
       const bl=Math.sin(t*7+a.position.x)>.92;a.nav[2].material.opacity=bl?1:0;a.nav[0].material.opacity=a.nav[1].material.opacity=.9;
       const g=gY(a.position.x,a.position.z);a.shadow.position.set(a.position.x+a.alt*.12,g+1.2,a.position.z+a.alt*.1);a.shadow.rotation.y=a.rotation.y;a.shadow.scale.setScalar(a.scale.x*(1+a.alt/400));a.shadow.material.opacity=clamp(.4-a.alt/600,.12,.4)});
     wide.farpRing&&(wide.farpRing.material.opacity=.6+.3*Math.sin(t*2.5));wide.tgtRing&&(wide.tgtRing.material.opacity=.6+.35*Math.sin(t*3),wide.tgtRing.scale.setScalar(1+.06*Math.sin(t*3)));
