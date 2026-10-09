@@ -1,5 +1,4 @@
 <title>J-FARP Seizure</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="assets/gltfloader.js"></script>
 <style>
@@ -8,9 +7,9 @@
   --bg:#070b16; --glass:rgba(16,20,30,.62); --glass2:rgba(22,26,38,.68); --red:#ff3b4a;
   --fg:#eef0f8; --mute:#aab2cf; --dim:#6b7498; --line:rgba(238,240,248,.16);
   --amber:#f4b94a; --amber2:#ffd98a; --sky:#79d4ff; --sky2:#bfe9ff; --rose:#ff7384; --mint:#8be3b0;
-  --display:'Fraunces',Georgia,'Times New Roman',serif;
-  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --display:Arial,Helvetica,sans-serif;
+  --body:Arial,Helvetica,sans-serif;
+  --mono:Arial,Helvetica,sans-serif;
   color-scheme:dark;
 }
 html,body{height:100%}
@@ -22,15 +21,18 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);overf
 #stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform-origin:center center;transform:translate(-50%,-50%) scale(.5)}
 .slide{position:absolute;inset:0;padding:72px 90px 90px;display:none}
 .slide.active{display:block}
-.slide>*{position:relative}
+.slide>*{position:relative;transition:filter .6s ease}
+#stage.textoff .slide>*:not(.foot){filter:opacity(0);pointer-events:none}
+.active .af{animation:rise .85s cubic-bezier(.2,.7,.2,1) both,fadeout .9s ease forwards;animation-delay:var(--d,0s),calc(var(--d,0s) + var(--hold,7s))}
+@keyframes fadeout{to{opacity:0}}
 
 /* type */
 .eyebrow{font-family:var(--mono);font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);display:flex;gap:16px;align-items:center}
 .eyebrow .ph{color:var(--mute)}
 .eyebrow::before{content:"";width:30px;height:1px;background:var(--amber)}
-h1{font-family:var(--display);font-weight:500;font-size:64px;line-height:1.02;margin:18px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:19ch;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+h1{font-family:var(--display);font-weight:700;font-size:64px;line-height:1.02;margin:18px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:19ch;text-shadow:0 2px 24px rgba(0,0,0,.6)}
 h1 em,h2 em{font-style:italic;color:var(--amber2)}
-h2{font-family:var(--display);font-weight:500;font-size:42px;line-height:1.06;margin:14px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:20ch;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+h2{font-family:var(--display);font-weight:700;font-size:42px;line-height:1.06;margin:14px 0 0;letter-spacing:-.01em;text-wrap:balance;max-width:20ch;text-shadow:0 2px 24px rgba(0,0,0,.6)}
 p{font-size:19px;line-height:1.5;color:var(--mute);max-width:52ch;margin:0}
 p strong{color:var(--fg);font-weight:600}
 .lede{font-size:24px;color:var(--fg);max-width:40ch}
@@ -53,7 +55,7 @@ p strong{color:var(--fg);font-weight:600}
 .cols.c3{grid-template-columns:repeat(3,1fr)}
 .cols.c4{grid-template-columns:repeat(4,1fr)}
 .card{background:var(--glass2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:16px;padding:20px 22px 18px;min-width:0}
-.card h3{font-family:var(--display);font-weight:500;font-size:24px;margin:0 0 6px;line-height:1.1}
+.card h3{font-family:var(--display);font-weight:700;font-size:24px;margin:0 0 6px;line-height:1.1}
 .card p{font-size:15.5px;line-height:1.45}
 .card.hi{border-color:rgba(244,185,74,.5);background:linear-gradient(180deg,rgba(244,185,74,.14),rgba(14,20,40,.78))}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:16px;color:var(--mute);align-items:baseline}
@@ -63,7 +65,7 @@ p strong{color:var(--fg);font-weight:600}
 .list li::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);margin-top:8px;justify-self:center}
 .list li b{color:var(--fg);font-weight:600}
 .stat{display:grid;gap:2px}
-.stat .v{font-family:var(--display);font-size:46px;line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
+.stat .v{font-family:var(--display);font-weight:700;font-size:46px;line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
 .stat .v span{font-family:var(--mono);font-size:15px;color:var(--amber);margin-left:6px;letter-spacing:.08em}
 .stat .l{font-size:14px;color:var(--mute)}
 .stats{display:flex;gap:36px;flex-wrap:wrap}
@@ -118,7 +120,7 @@ p strong{color:var(--fg);font-weight:600}
 <!-- 1 TITLE -->
 <section class="slide" data-t="16" data-cap="J-FARP Seizure. A concept of operations brief: an infantry company (minus) conducts air assault operations to seize a jump forward arming and refueling point in order to enable combat aviation to mass combat power in the Division deep area.">
   <div class="hd a" style="max-width:900px"><div class="eyebrow a">Concept of the operation <span class="ph">J-FARP seizure</span></div><h1 class="a" style="--d:.15s;font-size:96px;margin-top:36px">J-FARP <em>Seizure.</em></h1><p class="lede a" style="--d:.35s;margin-top:22px;font-size:26px;max-width:36ch">Air assault seizure of a jump forward arming and refueling point to extend combat aviation reach into the Division deep area.</p></div>
-  <div class="foot"><span>Dog Company · 2-506 IN · 3BCT, 101st ABN DIV (AASLT) · with 6-101 CAB</span><span class="hint">→ advance · P play · drag to look</span></div>
+  <div class="foot"><span>Dog Company · 2-506 IN · 3BCT, 101st ABN DIV (AASLT) · with 6-101 CAB</span><span class="hint">click: hide text · click again: next · P play · drag to look</span></div>
 </section>
 
 <!-- 2 REACH -->
@@ -167,12 +169,12 @@ p strong{color:var(--fg);font-weight:600}
 </section>
 
 <!-- 5 CONCEPT -->
-<section class="slide" data-t="40" data-cap="Concept of the operation. Three lifts. Lift one, the Ground Task Force, air assaults to seize the J-FARP site. Lift two, the FARP Task Force, delivers the WETCOW with fuel and the FATCOW with AH-64 munitions and establishes the FARP. Lift three, the deep attack, refuels and rearms at the J-FARP and continues to the Division target.">
-  <div class="a hd"><div class="eyebrow">Concept of the operation <span class="ph">three lifts</span></div><h2 style="max-width:30ch">Seize the site. Establish the FARP. <em>Turn the deep attack.</em></h2><p class="a small" style="--d:.3s;margin-top:12px;max-width:66ch"><strong>Mission.</strong> On order, an Infantry Company (-) conducts Air Assault Operations to seize a J-FARP to enable Combat Aviation Assets to mass combat power in the Division Deep Area to defeat enemy forces and seize key terrain.</p></div>
+<section class="slide" data-t="46" data-cap="Concept of the operation. Three lifts. Lift one, the Ground Task Force, air assaults to seize the J-FARP site. Lift two, the FARP Task Force, delivers the WETCOW with fuel and the FATCOW with AH-64 munitions and establishes the FARP. Lift three, the deep attack, refuels and rearms at the J-FARP and continues to the Division target.">
+  <div class="a af hd" style="--hold:12s"><div class="eyebrow">Concept of the operation <span class="ph">three lifts</span></div><h2 style="max-width:30ch">Seize the site. Establish the FARP. <em>Turn the deep attack.</em></h2><p class="a small" style="--d:.3s;margin-top:12px;max-width:66ch"><strong>Mission.</strong> On order, an Infantry Company (-) conducts Air Assault Operations to seize a J-FARP to enable Combat Aviation Assets to mass combat power in the Division Deep Area to defeat enemy forces and seize key terrain.</p></div>
   <div class="right" style="top:auto;bottom:84px;width:470px">
-    <div class="card a" style="--d:1s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 1 – Ground Task Force</span><p style="margin-top:8px">2x CH47 · 2x UH60 · C2 (NOMAD) · 82 PAX. GTF air assault. FARP seizure. Pathfinder operations.</p></div><img class="cut" src="assets/uh60.png" alt="UH-60 Black Hawk"></div>
-    <div class="card a hi" style="--d:14s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag amber">Lift 2 – FARP Task Force</span><p style="margin-top:8px">2x CH47 · FATCOW · WETCOW · 18 PAX. FARP TF air assault. FARP establishment.</p></div></div>
-    <div class="card a" style="--d:24s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 3 – Deep Attack</span><p style="margin-top:8px">2x AH64. Deep attack air assault. Refuel and rearm at the J-FARP, continue to the DIV deep TGT (100–150 NM).</p></div><img class="cut" src="assets/ah64.png" alt="AH-64 Apache"></div>
+    <div class="card a af" style="--hold:9s;--d:1s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 1 – Ground Task Force</span><p style="margin-top:8px">2x CH47 · 2x UH60 · C2 (NOMAD) · 82 PAX. GTF air assault. FARP seizure. Pathfinder operations.</p></div><img class="cut" src="assets/uh60.png" alt="UH-60 Black Hawk"></div>
+    <div class="card a af hi" style="--hold:8s;--d:14s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag amber">Lift 2 – FARP Task Force</span><p style="margin-top:8px">2x CH47 · FATCOW · WETCOW · 18 PAX. FARP TF air assault. FARP establishment.</p></div></div>
+    <div class="card a af" style="--hold:8s;--d:24s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 3 – Deep Attack</span><p style="margin-top:8px">2x AH64. Deep attack air assault. Refuel and rearm at the J-FARP, continue to the DIV deep TGT (100–150 NM).</p></div><img class="cut" src="assets/ah64.png" alt="AH-64 Apache"></div>
   </div>
   <div class="foot"><span>Source: Concept of the Operation – J-FARP Seizure (CONOP as briefed)</span><span>05</span></div>
 </section>
@@ -219,7 +221,7 @@ p strong{color:var(--fg);font-weight:600}
 <section class="slide" data-t="24" data-cap="Phasing. Phase one, condition setting, through wheels up. Phase two, air assault and seizure, from wheels down to FARP seized at H plus one. Phase three, FARP operations, through H plus two. Phase four, FARP defense, runs for the duration the site is open, through reconsolidation at H plus three.">
   <div class="a hd"><div class="eyebrow">FARP Seizure Concept <span class="ph">Proposed Phasing</span></div><h2>Four phases, <em>three hours on the ground.</em></h2></div>
   <div class="panel a" style="--d:.4s;margin-top:26px;padding:26px 30px 22px">
-    <svg viewBox="0 0 1380 150" width="100%" height="150" style="overflow:visible;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase">
+    <svg viewBox="0 0 1380 150" width="100%" height="150" style="overflow:visible;font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase">
       <line x1="40" y1="70" x2="1340" y2="70" stroke="var(--line)" stroke-width="2"/>
       <rect x="40" y="66" width="1300" height="8" rx="4" fill="var(--amber)" style="transform-origin:40px 70px;animation:growx 2.4s cubic-bezier(.3,.7,.2,1) .6s both"/>
       <style>@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}</style>
@@ -273,7 +275,7 @@ p strong{color:var(--fg);font-weight:600}
 
 <!-- 10 PHASE II -->
 <section class="slide" data-t="52" data-cap="Phase two, air assault and seizure. Serials land LZ Vulture, LZ Falcon and LZ Owl. Team Seize takes OBJ Husky. Team Isolate takes OBJ Poodle and OBJ Bernese. Pathfinders establish PZ Cedar and the rapid refuel point inside the triangle. FARP seized no later than H plus one.">
-  <div class="left" style="width:500px">
+  <div class="right" style="width:500px">
     <div class="a hd"><div class="eyebrow">Phase II <span class="ph">air assault and seizure</span></div><h2>Land. Seize the objectives. <em>Establish the PZ.</em></h2></div>
     <div class="panel a" style="--d:.4s"><p class="small">Key tasks: GTF air assault (Lift 1), FARP seizure, pathfinder operations. Night air assault, dismounted land navigation, seize.</p>
       <ol class="list" style="margin-top:14px;font-size:16px">
@@ -356,7 +358,7 @@ p strong{color:var(--fg);font-weight:600}
   </div>
   <div class="right" style="width:470px;top:150px">
     <div class="panel a" style="--d:2s;padding:20px 22px">
-      <svg viewBox="0 0 430 300" width="100%" style="overflow:visible;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase">
+      <svg viewBox="0 0 430 300" width="100%" style="overflow:visible;font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase">
         <g>
           <text x="100" y="14" fill="var(--amber)" text-anchor="middle">Objectives around PZ Cedar</text>
           <path d="M100 75 L55 30 A64 64 0 0 1 145 30 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3s" fill="freeze"/></path>
@@ -505,7 +507,7 @@ const WX=6400,WZ=1936,WN=512,WM=154;let whm=null;
 function hW(x,z){if(!whm)return 0;const u=clamp((x/WX+.5)*(WN-1),0,WN-1.001),v=clamp((z/WZ+.5)*(WM-1),0,WM-1.001);const i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j;const H=(a,b)=>whm[b*WN+a];return lerp(lerp(H(i,j),H(i+1,j),fu),lerp(H(i,j+1),H(i+1,j+1),fu),fv)}
 function makeLabel(text,color,size,w){
   const c=document.createElement('canvas');const s=size||26;c.width=512;c.height=96;const g=c.getContext('2d');
-  g.font=`600 ${s}px "IBM Plex Mono", monospace`;g.textAlign='center';g.textBaseline='middle';g.letterSpacing='3px';
+  g.font=`bold ${s}px Arial, Helvetica, sans-serif`;g.textAlign='center';g.textBaseline='middle';g.letterSpacing='3px';
   const tw=g.measureText(text.toUpperCase()).width+34,th=s+22;const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.quadraticCurveTo(x+w,y,x+w,y+r);g.lineTo(x+w,y+h-r);g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath()};
   rr(256-tw/2,48-th/2,tw,th,8);g.fillStyle='rgba(8,10,18,.88)';g.fill();g.lineWidth=2;g.strokeStyle=color||'#eef0f8';g.stroke();g.fillStyle=color||'#eef0f8';g.fillText(text.toUpperCase(),256,48);
   const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
@@ -580,7 +582,7 @@ function Engine(){
   new THREE.TextureLoader().load('assets/sat.jpg',tex=>{
     tex.encoding=THREE.sRGBEncoding;tex.anisotropy=renderer.capabilities.getMaxAnisotropy();oMat.map=tex;oMat.color.set(0xffffff);oMat.needsUpdate=true;
     const c=document.createElement('canvas');c.width=ON+1;c.height=OM+1;const g=c.getContext('2d');g.drawImage(tex.image,0,0,c.width,c.height);const d=g.getImageData(0,0,c.width,c.height).data;
-    const raw=new Float32Array((ON+1)*(OM+1));for(let i=0;i<raw.length;i++){const l=(d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11)/255;raw[i]=sstep(.42,.28,l)*16}
+    const raw=new Float32Array((ON+1)*(OM+1));for(let i=0;i<raw.length;i++){const r=d[i*4],g=d[i*4+1],b=d[i*4+2];const l=(r*.3+g*.59+b*.11)/255;const water=b>r*1.25&&b>g*1.12&&b>110;raw[i]=water?-6:sstep(.42,.28,l)*16}
     hmap=new Float32Array(raw.length);for(let j=0;j<=OM;j++)for(let i=0;i<=ON;i++){let s=0,n=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>ON||jj>OM)continue;s+=raw[jj*(ON+1)+ii];n++}hmap[j*(ON+1)+i]=s/n+fbm(i/9,j/9,2)*1.2}
     const p=oGeo.attributes.position;for(let i=0;i<p.count;i++){p.setY(i,hmap[i])}p.needsUpdate=true;oGeo.computeVertexNormals();
   });
@@ -728,12 +730,12 @@ function Engine(){
   shots[3]={world:'wide',cam:camKF([{t:0,v:V(F[0]-900,1000,F[1]+1600,F[0]+400,0,F[1]-200)},{t:14,v:V(F[0]+200,1200,F[1]+1500,C[0]-300,0,C[1])},{t:24,v:V(C[0]-700,700,C[1]+1100,C[0],0,C[1])}]),
     anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+500,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],2+k*.5,16,{alt:200,land:false}))],
     extra:t=>{wide.range.visible=t>1;wide.range.set(F[0],F[1],lerp(10,1150,ease((t-1)/6)),40);wide.range.material.color.set(0x22d35a);wide.range.material.opacity=.7;}};
-  shots[4]={world:'wide',cam:camKF([{t:0,v:V(I[0]-700,700,I[1]+900,I[0],0,I[1])},{t:4,v:chase(A.ch[0],-380,120,-260)},{t:12,v:chase(A.ch[0],-380,120,-260)},{t:16,v:V(F[0]-300,900,F[1]+1300,F[0],0,F[1])},{t:24,v:V(F[0]-100,620,F[1]+900,F[0],0,F[1])},{t:30,v:V(F[0]+300,900,F[1]+1200,C[0]-400,0,C[1])},{t:40,v:V(C[0]-800,500,C[1]+800,C[0],0,C[1])}]),
+  shots[4]={world:'wide',cam:camKF([{t:0,v:V(I[0]-700,700,I[1]+900,I[0],0,I[1])},{t:4,v:chase(A.ch[0],-380,120,-260)},{t:12,v:chase(A.ch[0],-380,120,-260)},{t:16,v:V(F[0]-300,900,F[1]+1300,F[0],0,F[1])},{t:24,v:V(F[0]-100,620,F[1]+900,F[0],0,F[1])},{t:31,v:V(F[0]+200,420,F[1]+700,F[0]+100,0,F[1]+100)},{t:35,v:chase(A.ah[0],-420,140,260)},{t:46,v:chase(A.ah[0],-420,140,260)}]),
     anims:[...A.ch.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*150],[F[0]-60+k*70,F[1]-60+k*110]],1+k*.9,13,{parked:true,alt:170+k*25})),
       ...A.uh.map((a,k)=>flight(a,[isbPark(2+k),[I[0]+450,I[1]+60+k*140],[F[0]-80+k*60,F[1]+120+k*90]],2.4+k*.8,13,{parked:true,alt:150+k*20})),
       ...A.fat.map((a,k)=>flight(a,[isbPark(k),[I[0]+520,I[1]-200],[F[0]+80+k*60,F[1]+20+k*70]],14+k*.6,11,{parked:true,alt:170})),
       ...A.ah.map((a,k)=>flight(a,[isbPark(k+2),[I[0]+560,I[1]-150],[F[0]+10,F[1]+150+k*60]],22+k*.5,9,{parked:true,alt:200,spinAfter:999})),
-      ...A.ah.map((a,k)=>{const f=flight(a,[[F[0]+10,F[1]+150+k*60],[F[0]+600,F[1]-100+k*60],[C[0]-150,C[1]+120+k*60]],34+k*.5,8,{alt:220,land:false});return t=>{if(t>=34+k*.5)f(t)}})]};
+      ...A.ah.map((a,k)=>{const f=flight(a,[[F[0]+10,F[1]+150+k*60],[F[0]+600,F[1]-100+k*60],[C[0]-150,C[1]+120+k*60]],34+k*.5,11,{alt:220,land:false});return t=>{if(t>=34+k*.5)f(t)}})]};
   shots[5]={world:'obj',cam:camKF([{t:0,v:V(-400,1500,1300,0,0,0)},{t:22,v:V(300,1300,1100,0,0,-100)}]),anims:[]};
   shots[6]={world:'obj',cam:camKF([{t:0,v:V(0,1900,300,0,0,0)},{t:22,v:V(100,1700,250,0,0,-50)}]),anims:[]};
   shots[7]={world:'obj',cam:camKF([{t:0,v:V(-1200,900,900,-100,0,0)},{t:24,v:V(-900,1000,1200,0,0,0)}]),anims:[]};
@@ -829,24 +831,26 @@ try{if(hasGL){E=Engine();}}catch(err){console.error(err);document.getElementById
 setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?15000:0);
 
 /* ---------- navigation ---------- */
-function go(n){n=Math.max(0,Math.min(slides.length-1,n));slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
+function textOff(){if(!stage.classList.contains('textoff')){stage.classList.add('textoff');return true}return false}
+function advance(){if(playing){go(cur+1);return}if(!textOff())go(cur+1)}
+function go(n){n=Math.max(0,Math.min(slides.length-1,n));stage.classList.remove('textoff');slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
   prog.style.width=((cur+1)/slides.length*100)+'%';count.textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
   [...dots.children].forEach((d,k)=>d.classList.toggle('cur',k===cur));cap.textContent=s.dataset.cap||'';cap.classList.toggle('show',caps&&!!s.dataset.cap);
   try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
   if(E)E.startShot(cur);if(playing)arm();}
-function replay(){slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);if(playing)arm();}
+function replay(){stage.classList.remove('textoff');slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);if(playing)arm();}
 function arm(){clearTimeout(timer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt)}
 function start(){playing=true;playBtn.classList.add('on');playBtn.querySelector('.lbl').textContent='Pause';playBtn.setAttribute('aria-label','Pause');document.getElementById('playico').innerHTML='<path d="M2 1h2v8H2zM6 1h2v8H6z"/>';if(!caps){caps=true;capBtn.classList.add('on');capBtn.setAttribute('aria-pressed','true');cap.classList.toggle('show',!!slides[cur].dataset.cap)}arm()}
 function stop(){playing=false;clearTimeout(timer);playBtn.classList.remove('on');playBtn.querySelector('.lbl').textContent='Play';playBtn.setAttribute('aria-label','Play');document.getElementById('playico').innerHTML='<path d="M2 1l7 4-7 4z"/>'}
 playBtn.addEventListener('click',()=>playing?stop():start());
 capBtn.addEventListener('click',()=>{caps=!caps;capBtn.classList.toggle('on',caps);capBtn.setAttribute('aria-pressed',String(caps));cap.classList.toggle('show',caps&&!!slides[cur].dataset.cap)});
-document.getElementById('prev').addEventListener('click',()=>go(cur-1));document.getElementById('next').addEventListener('click',()=>go(cur+1));document.getElementById('replay').addEventListener('click',replay);
+document.getElementById('prev').addEventListener('click',()=>go(cur-1));document.getElementById('next').addEventListener('click',()=>advance());document.getElementById('replay').addEventListener('click',replay);
 addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
-  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();go(cur+1)}
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){e.preventDefault();advance()}else if(e.key==='PageDown'){e.preventDefault();go(cur+1)}else if(e.key==='t'||e.key==='T'){stage.classList.toggle('textoff')}
   else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1)}
   else if(e.key==='Home'){go(0)}else if(e.key==='End'){go(slides.length-1)}
   else if(e.key==='p'||e.key==='P'){playing?stop():start()}else if(e.key==='r'||e.key==='R'){replay()}else if(e.key==='c'||e.key==='C'){capBtn.click()}});
-wrap.addEventListener('click',e=>{if(E&&E.wasDragged()){E.clearDrag();return}if(e.target.closest('.panel,.card,.photo,button,a'))return;const r=wrap.getBoundingClientRect();if((e.clientX-r.left)/r.width<.15)go(cur-1);else go(cur+1)});
+wrap.addEventListener('click',e=>{if(E&&E.wasDragged()){E.clearDrag();return}if(e.target.closest('.panel,.card,.photo,button,a'))return;const r=wrap.getBoundingClientRect();if((e.clientX-r.left)/r.width<.15)go(cur-1);else advance()});
 let tx=null;wrap.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});wrap.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(dx<0?cur+1:cur-1);tx=null},{passive:true});
 const m=/^#s(\d+)$/.exec(location.hash);const startAt=m?Math.min(slides.length,Math.max(1,parseInt(m[1],10)))-1:0;slides[0].classList.add('active');go(startAt);
 })();
