@@ -431,7 +431,7 @@ p strong{color:var(--fg);font-weight:600}
     <div class="panel a" style="--d:1s;flex:1"><div class="tag">Sources</div>
       <p class="small" style="margin-top:12px;font-size:14.5px">Doctrinal framing draws on FM 3-04 <em>Army Aviation</em>, ATP 3-04.17 <em>Techniques for Forward Arming and Refueling Points</em>, and FM 3-99 <em>Airborne and Air Assault Operations</em>.</p>
       <p class="small" style="margin-top:10px;font-size:14.5px">Distances, task organization, lifts, phasing, timeline, deliverables, aerial imagery and apron photographs are from the Dog Company J-FARP Seizure CONOP and the Operation Storm Surge AMCM / AMB deck of 06 OCT 26.</p>
-      <p class="small" style="margin-top:10px;font-size:14.5px">The CH-47 is the unit-supplied Chinook model and texture set. The UH-60 and AH-64 remain icons. The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Chalk-to-zone and objective assignments follow the Ground Task Force slide; observation post and mortar positions are illustrative.</p></div>
+      <p class="small" style="margin-top:10px;font-size:14.5px">The CH-47 and AH-64 are the supplied models and texture sets. The UH-60 remains an icon. The wide-area terrain is built from two illustrative terrain-board renders and is not real geography. Chalk-to-zone and objective assignments follow the Ground Task Force slide; observation post and mortar positions are illustrative.</p></div>
   </div>
   <div class="foot"><span>Dog Company · 2-506 IN · 6-101 CAB</span><span>17 · end</span></div>
 </section>
@@ -612,22 +612,23 @@ function Engine(){
     g.nav=[lamp(0xff3b3b,0,2,-len*.22,len*.07),lamp(0x37ff6a,0,2,len*.22,len*.07),lamp(0xffffff,-len*.3,2,0,len*.05)];g.nav.forEach(l=>g.add(l));
     g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;g.lift=2.5;return g}
   function lamp(color,x,y,z,s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false}));sp.scale.set(s,s,1);sp.position.set(x,y,z);return sp}
-  /* ===== CH-47: the supplied Chinook model with its PBR texture set ===== */
-  const CH47={proto:null,waiting:[]};
-  function makeModel(kind,len,fuel){const g=new THREE.Group();g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;g.lift=0;g.rotors=[];g.fuel=!!fuel;
+  /* ===== supplied aircraft models with their PBR texture sets ===== */
+  const MODELS={ch47:{url:'assets/ch47.json',tex:{map:'assets/ch47_albedo.jpg',normalMap:'assets/ch47_normal.jpg',orm:'assets/ch47_orm.jpg'},real:30.1,emis:0x1c2214,proto:null,waiting:[]},
+                ah64:{url:'assets/ah64.json',tex:{map:'assets/ah64_albedo.jpg',normalMap:'assets/ah64_normal.jpg',orm:'assets/ah64_orm.jpg'},real:17.7,emis:0x141618,proto:null,waiting:[]}};
+  function makeModel(kind,len,fuel){const M=MODELS[kind];const g=new THREE.Group();g.kind=kind;g.len=len;g.visible=false;g.spin=0;g.alt=0;g.lift=0;g.rotors=[];g.fuel=!!fuel;
     const shadow=new THREE.Mesh(new THREE.PlaneGeometry(len*1.1,len*.5),new THREE.MeshBasicMaterial({map:GLOW,transparent:true,opacity:.45,depthWrite:false,color:0x000000}));shadow.rotation.order='YXZ';shadow.rotation.x=-Math.PI/2;scene.add(shadow);shadow.visible=false;g.shadow=shadow;
     g.nav=[lamp(0xff3b3b,-len*.05,len*.1,-len*.075,len*.07),lamp(0x37ff6a,-len*.05,len*.1,len*.075,len*.07),lamp(0xffffff,-len*.52,len*.1,0,len*.05)];g.nav.forEach(l=>g.add(l));
     if(fuel){const b=lamp(0xffb040,-len*.3,len*.26,0,len*.1);g.add(b);g.beacon=b}
-    const attach=()=>{const m=CH47.proto.clone(true);const sc=len/30.1;m.scale.setScalar(sc);g.add(m);g.rotors=[];m.traverse(o=>{if(o.isMesh&&o.name.startsWith('rotor')){const disc=new THREE.Mesh(new THREE.CircleGeometry(9.2,48),new THREE.MeshBasicMaterial({color:0x9aa0aa,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));disc.rotation.x=-Math.PI/2;o.add(disc);g.rotors.push({blades:o,disc,dir:o.name==='rotorF'?1:-1})}})};
-    if(CH47.proto)attach();else CH47.waiting.push(attach);return g}
-  (function loadCH47(){const tl=new THREE.TextureLoader();const T={};let n=0;const want={map:'assets/ch47_albedo.jpg',normalMap:'assets/ch47_normal.jpg',orm:'assets/ch47_orm.jpg'};
-    const ready=()=>{if(n<3||!CH47.glb)return;const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:0x1c2214,emissiveIntensity:.5});
-      const dark=new THREE.MeshStandardMaterial({color:0x101216,roughness:.4,metalness:.2});
-      CH47.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:mat;o.castShadow=true}});
-      CH47.proto=CH47.glb;CH47.waiting.forEach(f=>f());CH47.waiting=[]};
-    for(const k in want)tl.load(want[k],t=>{if(k==='map')t.encoding=THREE.sRGBEncoding;T[k]=t;n++;ready()});
-    if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/ch47.json',g=>{CH47.glb=g.scene;ready()},undefined,e=>console.error(e));})();
-  const A={ch:[makeModel('ch47',46),makeModel('ch47',46)],uh:[makeIcon('uh60',52)],fat:[makeModel('ch47',46,true),makeModel('ch47',46,true)],ah:[makeIcon('ah64',50),makeIcon('ah64',50)]};
+    const attach=()=>{const m=M.proto.clone(true);const sc=len/M.real;m.scale.setScalar(sc);g.add(m);g.rotors=[];m.traverse(o=>{if(o.isMesh&&o.name.startsWith('rotor')){const axis=o.name.startsWith('rotorX')?'x':'y';const tail=o.name.includes('tail');const r=tail?2.2:(kind==='ch47'?9.2:7.3);const disc=new THREE.Mesh(new THREE.CircleGeometry(r,48),new THREE.MeshBasicMaterial({color:0x9aa0aa,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));if(axis==='y')disc.rotation.x=-Math.PI/2;else disc.rotation.y=Math.PI/2;o.add(disc);g.rotors.push({blades:o,disc,axis,dir:o.name==='rotorA'?-1:1,rate:tail?2.5:1})}})};
+    if(M.proto)attach();else M.waiting.push(attach);return g}
+  Object.keys(MODELS).forEach(kind=>{const M=MODELS[kind];const tl=new THREE.TextureLoader();const T={};let n=0;
+    const ready=()=>{if(n<3||!M.glb)return;const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.5});
+      const dark=new THREE.MeshStandardMaterial({color:0x101216,roughness:.4,metalness:.2});const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.75});
+      M.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:o.name==='glass'?glass:mat;o.castShadow=true}});
+      M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[]};
+    for(const k in M.tex)tl.load(M.tex[k],t=>{if(k==='map')t.encoding=THREE.sRGBEncoding;T[k]=t;n++;ready()});
+    if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load(M.url,g=>{M.glb=g.scene;ready()},undefined,e=>console.error(e));});
+  const A={ch:[makeModel('ch47',46),makeModel('ch47',46)],uh:[makeIcon('uh60',52)],fat:[makeModel('ch47',46,true),makeModel('ch47',46,true)],ah:[makeModel('ah64',27),makeModel('ah64',27)]};
   const allAC=[...A.ch,...A.uh,...A.fat,...A.ah];allAC.forEach(a=>scene.add(a));
   const SCALE={wide:5.5,obj:1};
   /* ===== dismounted troops: the GTF slide's soldier silhouette ===== */
@@ -757,7 +758,7 @@ function Engine(){
   function startShot(i){if(!shots.length){pendingShot=i;return}shot=shots[i]||shots[0];setWorld(shot.world);(wide.beams||[]).forEach(b=>b.visible=!shot.noBeam);allAC.forEach(a=>{a.visible=false;a.shadow.visible=false;a.spin=0});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x79d4ff);resetObj();
     dragOff=[0,0];shotStart=performance.now();t=0;step(0,performance.now())}
   function step(dt,now){t=(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
-    allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation.y+=dt*(a.spin?30:0)*(r.dir||1);const d=r.disc||r.children[0];if(d)d.material.opacity=a.spin?(r.disc?.22:.3):(r.disc?0:.08)});if(a.beacon)a.beacon.material.opacity=.5+.5*Math.sin(t*6);
+    allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation[r.axis||'y']+=dt*(a.spin?30:0)*(r.dir||1)*(r.rate||1);const d=r.disc||r.children[0];if(d)d.material.opacity=a.spin?(r.disc?.22:.3):(r.disc?0:.08)});if(a.beacon)a.beacon.material.opacity=.5+.5*Math.sin(t*6);
       const bl=Math.sin(t*7+a.position.x)>.92;a.nav[2].material.opacity=bl?1:0;a.nav[0].material.opacity=a.nav[1].material.opacity=.9;
       const g=gY(a.position.x,a.position.z);a.shadow.position.set(a.position.x+a.alt*.12,g+1.2,a.position.z+a.alt*.1);a.shadow.rotation.y=a.rotation.y;a.shadow.scale.setScalar(a.scale.x*(1+a.alt/400));a.shadow.material.opacity=clamp(.4-a.alt/600,.12,.4)});
     wide.farpRing&&(wide.farpRing.material.opacity=.7+.3*Math.sin(t*2.5));wide.isbRing&&(wide.isbRing.material.opacity=.7+.3*Math.sin(t*2.2));wide.tgtRing&&(wide.tgtRing.material.opacity=.7+.3*Math.sin(t*3),wide.tgtRing.scale.setScalar(1+.06*Math.sin(t*3)));
