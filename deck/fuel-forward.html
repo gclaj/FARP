@@ -125,10 +125,10 @@ p strong{color:var(--fg);font-weight:600}
 
 <!-- 2 REACH -->
 <section class="slide" data-t="22" data-cap="The operational problem. Division deep targets lie beyond the combat radius of attack aviation operating from the intermediate staging base. Fuel, ordnance, reserve and station time compete for the same fuel load.">
-  <div class="a hd" style="max-width:1420px;width:1420px;display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:center;padding:18px 26px"><div><div class="eyebrow">The problem <span class="ph">operational reach</span></div><h2 style="font-size:36px;margin-top:8px">Deep targets lie beyond <em>combat radius.</em></h2></div>
+  <div class="a hd" style="position:absolute;left:90px;bottom:60px;max-width:1420px;width:1420px;display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:center;padding:18px 26px"><div><div class="eyebrow">The problem <span class="ph">operational reach</span></div><h2 style="font-size:36px;margin-top:8px">Deep targets lie beyond <em>combat radius.</em></h2></div>
     <div><p class="small">Attack aviation combat radius is bounded by fuel load. Ordnance, required reserve and time on station all draw on the same tank. When the Division deep target sits beyond that radius, the deep attack cannot be executed from the intermediate staging base.</p>
       <div class="stats" style="margin-top:10px;gap:28px"><div class="stat"><div class="v" style="font-size:34px">180–200<span>NM</span></div><div class="l">ISB – J-FARP SITE</div></div><div class="stat"><div class="v" style="font-size:34px">100–150<span>NM</span></div><div class="l">J-FARP SITE – DIV DEEP TGT</div></div></div></div></div>
-  <div class="right" style="width:420px;top:auto;bottom:60px"><div class="panel a" style="--d:9s;border-color:rgba(255,115,132,.5);padding:14px 20px"><p class="small"><strong style="color:var(--rose)">Bingo fuel.</strong> The attack element reaches bingo short of the objective and must return to base. Terrain beyond that line remains unshaped until fuel is positioned forward.</p></div></div>
+  <div class="right" style="width:420px;top:72px"><div class="panel a" style="--d:9s;border-color:rgba(255,115,132,.5);padding:14px 20px"><p class="small"><strong style="color:var(--rose)">Bingo fuel.</strong> The attack element reaches bingo short of the objective and must return to base. Terrain beyond that line remains unshaped until fuel is positioned forward.</p></div></div>
   <div class="foot"><span>Requirement for a forward arming and refueling point</span><span>02</span></div>
 </section>
 
@@ -721,7 +721,7 @@ function Engine(){
   const fwd=(p,deg,dist)=>{const d=hdg(deg,dist);return[p[0]+d[0],p[1]+d[1]]};
   shots[0]={world:'wide',cam:camKF([{t:0,v:V(I[0]-500,900,I[1]+1500,F[0]-600,0,F[1])},{t:16,v:V(I[0]+200,620,I[1]+900,F[0],0,F[1])}]),
     anims:[...A.ch.map((a,k)=>flight(a,[isbPark(k),[I[0]+400,I[1]-200],[F[0]-300,F[1]-100]],3,40,{parked:true,land:false})),...A.uh.map((a,k)=>flight(a,[isbPark(2+k),[I[0]+420,I[1]-150+k*60],[F[0]-300,F[1]-60+k*60]],4.5+k*.6,40,{parked:true,land:false}))]};
-  shots[1]={world:'wide',cam:camKF([{t:0,v:V(I[0]-200,2000,I[1]+1900,F[0]-700,0,F[1]-200)},{t:12,v:V(F[0]-700,1800,F[1]+2200,F[0]-300,0,F[1]-200)},{t:20,v:V(F[0]-300,1600,F[1]+2300,F[0]-100,0,F[1]-300)}]),
+  shots[1]={world:'wide',cam:camKF([{t:0,v:V(I[0]-200,2000,I[1]+1900,F[0]-700,-260,F[1]-200)},{t:12,v:V(F[0]-700,1800,F[1]+2200,F[0]-300,-260,F[1]-200)},{t:20,v:V(F[0]-300,1600,F[1]+2300,F[0]-100,-260,F[1]-300)}]),
     anims:[...A.ah.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*40],[F[0]-150,F[1]+40+k*40],[F[0]-250,F[1]+300+k*40],[F[0]-700,F[1]+500+k*40]],1+k*.4,19,{parked:true,land:false,alt:200}))],
     extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),40);wide.range.material.opacity=.8;}};
   shots[2]={world:'wide',noBeam:true,cam:orbit(F[0],fy,F[1],520,260,.045,0,2.6),anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
