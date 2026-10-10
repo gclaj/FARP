@@ -649,11 +649,11 @@ function Engine(){
   /* ===== dismounted troops: the supplied soldier model, instanced per team ===== */
   const SOLDIER={geo:null,waiting:[]};
   if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/soldier.json',g=>{let geo=null;g.scene.traverse(o=>{if(o.isMesh&&!geo)geo=o.geometry});geo.computeVertexNormals();SOLDIER.geo=geo;SOLDIER.waiting.forEach(f=>f());SOLDIER.waiting=[]},undefined,e=>console.error(e));
-  const SOLDIER_H=6.5;
+  const SOLDIER_H=13;
   function team(n,color){const g=new THREE.Group();g.members=[];g.color=color;const blob=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x2a4ff0,transparent:true,depthWrite:false,opacity:.22}));blob.scale.set(110,110,1);blob.material.opacity=.3;g.add(blob);g.blob=blob;
     const tint=new THREE.Color(color);const mat=new THREE.MeshStandardMaterial({color:tint,roughness:.85,metalness:0,emissive:new THREE.Color(0x102382),emissiveIntensity:.18});
     for(let i=0;i<n;i++){const holder=new THREE.Group();holder.off=[(Math.random()-.5)*34,(Math.random()-.5)*34,Math.random()*6.28];holder.renderOrder=15;g.add(holder);g.members.push(holder);
-      const attach=()=>{const m=new THREE.Mesh(SOLDIER.geo,mat);const sc=SOLDIER_H/1.8;m.scale.setScalar(sc);m.castShadow=true;holder.add(m);const o=new THREE.Mesh(SOLDIER.geo,new THREE.MeshBasicMaterial({color:0x3fa9ff,side:THREE.BackSide,transparent:true,opacity:.35,depthWrite:false}));o.scale.setScalar(sc*1.12);holder.add(o);holder.outline=o};if(SOLDIER.geo)attach();else SOLDIER.waiting.push(attach)}
+      const attach=()=>{const m=new THREE.Mesh(SOLDIER.geo,mat);const sc=SOLDIER_H/1.8;m.scale.setScalar(sc);m.castShadow=true;holder.add(m)};if(SOLDIER.geo)attach();else SOLDIER.waiting.push(attach)}
     g.visible=false;scene.add(g);return g}
   const T={seize:team(16,0x071354),iso6:team(14,0x071354),iso7:team(8,0x071354),sec:team(8,0x071354),fuel:team(4,0x071354),pf:team(4,0x071354)};
   const teams=Object.values(T);
@@ -684,9 +684,9 @@ function Engine(){
       ac.spin=(t>t0-3&&(t<t0+dur+(o.spinAfter==null?6:o.spinAfter)))?1:0;
     }}
   function walk(tm,from,to,t0,dur,o){o=o||{};return function(t){const u=clamp((t-t0)/dur,0,1);if(t<t0&&!o.pre){tm.visible=false;return}tm.visible=true;const e=ease(u);const x=lerp(from[0],to[0],e),z=lerp(from[1],to[1],e);
-    tm.blob.position.set(x,gY(x,z)+4,z);tm.blob.material.opacity=o.fade?.22*(1-ease((t-o.fade)/2)):.22;
+    tm.blob.position.set(x,gY(x,z)+4,z);tm.blob.material.opacity=0;
     const moving=u>0&&u<1;const yaw=Math.atan2(-(to[1]-from[1]),(to[0]-from[0]));const fade=o.fade?1-ease((t-o.fade)/2):1;tm.visible=fade>0.02;
-    tm.members.forEach((h,i)=>{const spread=1-.5*(moving?1:0);const ox=h.off[0]*spread,oz=h.off[1]*spread;h.position.set(x+ox,gY(x+ox,z+oz)+(moving?Math.abs(Math.sin(t*6+h.off[2]))*.25:0),z+oz);h.rotation.y=(from[0]===to[0]&&from[1]===to[1])?h.off[2]:yaw+Math.PI/2+(moving?0:Math.sin(h.off[2])*.6);h.scale.setScalar(fade*(worldMode==='wide'?5:(shot&&shot.troopScale||1)));if(h.outline){h.outline.material.opacity=moving?.95:.3;h.outline.material.color.set(moving?0x66c8ff:0x3fa9ff);h.outline.scale.setScalar((SOLDIER_H/1.8)*(moving?1.3:1.12))}});tm.blob.scale.setScalar(110*(worldMode==='wide'?5:1))}}
+    tm.members.forEach((h,i)=>{const spread=1-.5*(moving?1:0);const ox=h.off[0]*spread,oz=h.off[1]*spread;h.position.set(x+ox,gY(x+ox,z+oz)+(moving?Math.abs(Math.sin(t*6+h.off[2]))*.25:0),z+oz);h.rotation.y=(from[0]===to[0]&&from[1]===to[1])?h.off[2]:yaw+Math.PI/2+(moving?0:Math.sin(h.off[2])*.6);h.scale.setScalar(fade*(worldMode==='wide'?5:(shot&&shot.troopScale||1)));});tm.blob.scale.setScalar(110*(worldMode==='wide'?5:1))}}
   function camKF(kfs){return function(t){let i=0;while(i<kfs.length-1&&t>=kfs[i+1].t)i++;const a=kfs[i],b=kfs[Math.min(i+1,kfs.length-1)];const u=a===b?1:ease((t-a.t)/(b.t-a.t));const A=typeof a.v==='function'?a.v(t):a.v,B=typeof b.v==='function'?b.v(t):b.v;
     return{pos:[lerp(A.pos[0],B.pos[0],u),lerp(A.pos[1],B.pos[1],u),lerp(A.pos[2],B.pos[2],u)],look:[lerp(A.look[0],B.look[0],u),lerp(A.look[1],B.look[1],u),lerp(A.look[2],B.look[2],u)]}}}
   const V=(px,py,pz,lx,ly,lz)=>({pos:[px,py,pz],look:[lx,ly,lz]});
@@ -728,7 +728,7 @@ function Engine(){
     extra:t=>{const seq=[['VULTURE',2],['OWL',5],['FALCON',8],['CEDAR',11]];obj.scan.visible=t>1.5;let p=O.VULTURE;for(const q of seq){if(t>=q[1])p=O[q[0]]}obj.scan.position.set(p[0],obj.scan.position.y,p[1]);obj.scan.material.color.set(t>=11?0x22d35a:0x6f94ff);const pulse=1+.08*Math.sin(t*4);obj.scan.scale.set(pulse,pulse,1);obj.cedarFill.material.opacity=t>11?.35+.1*Math.sin(t*3):0;}};
   // Phase II: CH-47 -> Vulture 158, CH-47 -> Owl 063, UH-60 -> Falcon 155
   const vA=back(O.VULTURE,158,520),oA=back(O.OWL,63,520),fA=back(O.FALCON,155,520);
-  shots[9]={world:'obj',hold:true,troopScale:2.4,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:56,v:V(O.TANG[0]+120,980,O.TANG[1]+760,O.TANG[0],0,O.TANG[1]+10)}]),
+  shots[9]={world:'obj',hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:56,v:V(O.TANG[0]+120,980,O.TANG[1]+760,O.TANG[0],0,O.TANG[1]+10)}]),
     anims:[flight(A.ch[0],[vA,back(O.VULTURE,158,120),O.VULTURE],1,11,{takeoff:false,alt:70}),
       flight(A.uh[0],[fA,back(O.FALCON,155,110),O.FALCON],2.2,11,{takeoff:false,alt:65}),
       flight(A.ch[1],[oA,back(O.OWL,63,120),O.OWL],3,11,{takeoff:false,alt:70}),
