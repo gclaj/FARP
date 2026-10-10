@@ -667,11 +667,11 @@ function Engine(){
   if(window.THREE&&THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/soldier.json',g=>{let geo=null;g.scene.traverse(o=>{if(o.isMesh&&!geo)geo=o.geometry});geo.computeVertexNormals();SOLDIER.geo=geo;SOLDIER.waiting.forEach(f=>f());SOLDIER.waiting=[]},undefined,e=>console.error(e));
   const SOLDIER_H=6.5;
   function team(n,color){const g=new THREE.Group();g.members=[];g.color=color;const blob=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x2a4ff0,transparent:true,depthWrite:false,opacity:.22}));blob.scale.set(110,110,1);blob.material.opacity=.3;g.add(blob);g.blob=blob;
-    const tint=new THREE.Color(color);const mat=new THREE.MeshStandardMaterial({color:tint,roughness:.85,metalness:0,emissive:new THREE.Color(0x1a3ad8),emissiveIntensity:.22});
+    const tint=new THREE.Color(color);const mat=new THREE.MeshStandardMaterial({color:tint,roughness:.85,metalness:0,emissive:new THREE.Color(0x102382),emissiveIntensity:.18});
     for(let i=0;i<n;i++){const holder=new THREE.Group();holder.off=[(Math.random()-.5)*34,(Math.random()-.5)*34,Math.random()*6.28];holder.renderOrder=15;g.add(holder);g.members.push(holder);
       const attach=()=>{const m=new THREE.Mesh(SOLDIER.geo,mat);const sc=SOLDIER_H/1.8;m.scale.setScalar(sc);m.castShadow=true;holder.add(m)};if(SOLDIER.geo)attach();else SOLDIER.waiting.push(attach)}
     g.visible=false;scene.add(g);return g}
-  const T={seize:team(16,0x0b1f8c),iso6:team(14,0x0b1f8c),iso7:team(8,0x0b1f8c),sec:team(8,0x0b1f8c),fuel:team(4,0x0b1f8c),pf:team(4,0x0b1f8c)};
+  const T={seize:team(16,0x071354),iso6:team(14,0x071354),iso7:team(8,0x071354),sec:team(8,0x071354),fuel:team(4,0x071354),pf:team(4,0x071354)};
   const teams=Object.values(T);
   /* ===== hoses and refuel points at the R3P ===== */
   const hoses=new THREE.Group();obj.add(hoses);hoses.visible=false;
