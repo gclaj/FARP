@@ -262,7 +262,7 @@ p strong{color:var(--fg);font-weight:600}
       <ol class="list" style="margin-top:14px;font-size:16px">
         <li class="a" style="--d:.5s"><div><b>H-hour. Wheels down.</b> CH-47 on LZ Vulture inbound 158°. CH-47 on LZ Owl inbound 063°. UH-60 on LZ Falcon inbound 155°.</div></li>
         <li class="a" style="--d:.5s"><div><b>Seize the site.</b> Element 2 moves from LZ Vulture and seizes the FARP site. Element 1 moves to OBJ Husky, oriented north.</div></li>
-        <li class="a" style="--d:.5s"><div><b>Interdict the approaches.</b> Element 1 occupies OBJ Poodle from LZ Falcon, oriented east along the road, and OBJ Bernese from LZ Owl, oriented south-west, interdicting the avenues of approach.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Interdict the approaches.</b> Element 1 occupies OBJ Poodle from LZ Falcon, oriented east along the road, and OBJ Bernese from LZ Owl, oriented south-east, interdicting the avenues of approach.</div></li>
         <li class="a" style="--d:.5s"><div><b>Establish the PZ.</b> Element 3 secures the site. Pathfinders mark PZ Cedar and the R3P inside the triangle formed by the objectives. FARP secured NLT H+1:00.</div></li>
       </ol></div>
     <p class="a small" style="--d:.5s;padding:0 6px;font-size:14px">Chalk-to-LZ assignments shown are the Storm Surge AMB plan (3 aircraft). The CONOP Lift 1 package is 2x CH47 / 2x UH60. Control measures are drawn over the unit's overhead imagery.</p>
@@ -330,7 +330,7 @@ p strong{color:var(--fg);font-weight:600}
     <div class="a hd"><div class="eyebrow">Applied <span class="ph">covering sectors of fire</span></div><h2>Three objectives, <em>one protected centre.</em></h2></div>
     <div class="panel a" style="--d:.4s;padding:20px 24px"><p class="small">The objectives are the apexes of a patrol base drawn at company scale around PZ Cedar. The Storm Surge AMB is one occupation of it. The geometry is TC 3-21.76 Figure 7-7.</p>
       <ul class="list" style="margin-top:12px;font-size:15px;gap:9px">
-        <li class="a" style="--d:3s"><div><b>Primary sectors outward.</b> OBJ Husky covers the northern avenue. OBJ Poodle covers the road from the east. OBJ Bernese covers the south-western approach.</div></li>
+        <li class="a" style="--d:3s"><div><b>Primary sectors outward.</b> OBJ Husky covers the northern avenue. OBJ Poodle covers the road from the east. OBJ Bernese covers the south-eastern approach.</div></li>
         <li class="a" style="--d:8s"><div><b>Crew-served weapons cover the leg to their left.</b> Husky's gun covers the Husky–Bernese leg, Poodle's the Poodle–Husky leg, Bernese's the Bernese–Poodle leg. Each leg has its own fires to the front plus a flanking gun across it.</div></li>
         <li class="a" style="--d:14s"><div><b>Any approach is engaged twice.</b> An enemy closing on the R3P crosses a leg under the fires of the objective on it and the gun at the adjacent apex.</div></li>
         <li class="a" style="--d:22s"><div><b>Depth.</b> Scout OPs forward on the avenues give early warning, as the handbook's OP along the route from the security halt does. The mortar section fires from the centre on registered targets.</div></li>
@@ -344,7 +344,7 @@ p strong{color:var(--fg);font-weight:600}
           <text x="100" y="14" fill="var(--amber)" text-anchor="middle">Objectives around PZ Cedar</text>
           <path d="M100 75 L55 30 A64 64 0 0 1 145 30 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3s" fill="freeze"/></path>
           <path d="M175 160 L220 115 A64 64 0 0 1 220 205 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3.4s" fill="freeze"/></path>
-          <path d="M110 250 L110 314 A64 64 0 0 1 46 250 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3.8s" fill="freeze"/></path>
+          <path d="M110 250 L174 250 A64 64 0 0 1 110 314 Z" fill="rgba(121,212,255,.18)" stroke="var(--sky)" stroke-width="1"><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".6s" begin="3.8s" fill="freeze"/></path>
           <g><set attributeName="opacity" to="0"/><animate attributeName="opacity" from="0" to="1" dur=".8s" begin="8s" fill="freeze"/>
             <path d="M100 75 L116 236 L104 248 Z" fill="rgba(31,95,214,.6)"/><path d="M175 160 L108 90 L96 92 Z" fill="rgba(31,95,214,.6)"/><path d="M110 250 L168 172 L178 164 Z" fill="rgba(31,95,214,.6)"/></g>
           <path d="M100 75 L175 160 L110 250 Z" fill="rgba(217,15,42,.18)" stroke="#ff3b4a" stroke-width="2.5" stroke-dasharray="300" stroke-dashoffset="300"><animate attributeName="stroke-dashoffset" from="300" to="0" dur="1.6s" begin="1s" fill="freeze"/></path>
@@ -594,7 +594,7 @@ function Engine(){
     const fan=(key,dirDeg,r)=>{const a0=(dirDeg-45)*Math.PI/180,a1=(dirDeg+45)*Math.PI/180;const shp=new THREE.Shape();shp.moveTo(0,0);shp.absarc(0,0,r,a0,a1,false);shp.lineTo(0,0);
       const m=new THREE.Mesh(new THREE.ShapeGeometry(shp,40),flat(0x1a3fe6,.55));m.rotation.x=-Math.PI/2;const p=O[key];m.position.set(p[0],Y+1,p[1]);
       const rim=new THREE.Shape();rim.absarc(0,0,r,a0,a1,false);rim.absarc(0,0,r-9,a1,a0,true);const rm=new THREE.Mesh(new THREE.ShapeGeometry(rim,40),flat(0x6f94ff,1));m.add(rm);const ed=[[0,0],[Math.cos(a0)*r,Math.sin(a0)*r],[0,0],[Math.cos(a1)*r,Math.sin(a1)*r]];for(let i=0;i<4;i+=2){const a=ed[i],b=ed[i+1];const len=Math.hypot(b[0]-a[0],b[1]-a[1]);const seg=new THREE.Mesh(new THREE.PlaneGeometry(len,8),flat(0x6f94ff,1));seg.position.set((a[0]+b[0])/2,(a[1]+b[1])/2,.2);seg.rotation.z=Math.atan2(b[1]-a[1],b[0]-a[0]);m.add(seg)}obj.def.add(m);return m};
-    obj.fans=[fan('HUSKY',90,520),fan('POODLE',0,520),fan('BERNESE',225,520)];
+    obj.fans=[fan('HUSKY',90,520),fan('POODLE',0,520),fan('BERNESE',315,520)];
     const legFan=(a,b)=>{const pa=O[a],pb=O[b];const dir=Math.atan2(-(pb[1]-pa[1]),pb[0]-pa[0])*180/Math.PI;const r=Math.hypot(pb[0]-pa[0],pb[1]-pa[1]);const m=fanAt(pa,dir,11,r,0x1f5fd6,.62,0x8fc0ff);obj.def.add(m);m.visible=false;return m};
     obj.legFans=[legFan('HUSKY','BERNESE'),legFan('POODLE','HUSKY'),legFan('BERNESE','POODLE')];
     obj.mgLabels=['HUSKY','POODLE','BERNESE'].map(k=>{const l=makeLabel('MG · covers the leg to its left','#bfe0ff',22,.22);const p=O[k];l.position.set(p[0],Y+12,p[1]-40);l.visible=false;obj.add(l);return l});
