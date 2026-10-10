@@ -719,9 +719,9 @@ function Engine(){
   const hdg=(deg,dist)=>[Math.sin(deg*Math.PI/180)*dist,-Math.cos(deg*Math.PI/180)*dist];
   const back=(p,deg,dist)=>{const d=hdg(deg,dist);return[p[0]-d[0],p[1]-d[1]]};
   const fwd=(p,deg,dist)=>{const d=hdg(deg,dist);return[p[0]+d[0],p[1]+d[1]]};
-  shots[0]={world:'wide',cam:camKF([{t:0,v:V((I[0]+C[0])/2-200,2500,(I[1]+C[1])/2+3400,(I[0]+C[0])/2,500,(I[1]+C[1])/2-200)},{t:16,v:V((I[0]+C[0])/2-100,2350,(I[1]+C[1])/2+3150,(I[0]+C[0])/2,500,(I[1]+C[1])/2-200)}]),
+  shots[0]={world:'wide',cam:camKF([{t:0,v:V(I[0]-1500,2100,I[1]+2900,(I[0]+C[0])/2+100,350,(I[1]+C[1])/2-100)},{t:16,v:V(I[0]-1250,1950,I[1]+2650,(I[0]+C[0])/2+100,350,(I[1]+C[1])/2-100)}]),
     anims:[...A.ch.map((a,k)=>flight(a,[isbPark(k),[I[0]+400,I[1]-200],[F[0]-300,F[1]-100]],3,40,{parked:true,land:false})),...A.uh.map((a,k)=>flight(a,[isbPark(2+k),[I[0]+420,I[1]-150+k*60],[F[0]-300,F[1]-60+k*60]],4.5+k*.6,40,{parked:true,land:false}))]};
-  shots[1]={world:'wide',cam:camKF([{t:0,v:V((I[0]+C[0])/2-200,2500,(I[1]+C[1])/2+3400,(I[0]+C[0])/2,-300,(I[1]+C[1])/2-200)},{t:22,v:V((I[0]+C[0])/2-100,2400,(I[1]+C[1])/2+3250,(I[0]+C[0])/2,-300,(I[1]+C[1])/2-200)}]),
+  shots[1]={world:'wide',cam:camKF([{t:0,v:V(I[0]-1500,2100,I[1]+2900,(I[0]+C[0])/2+100,-250,(I[1]+C[1])/2-100)},{t:22,v:V(I[0]-1350,2000,I[1]+2750,(I[0]+C[0])/2+100,-250,(I[1]+C[1])/2-100)}]),
     anims:[...A.ah.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*40],[F[0]-150,F[1]+40+k*40],[F[0]-250,F[1]+300+k*40],[F[0]-700,F[1]+500+k*40]],1+k*.4,19,{parked:true,land:false,alt:200}))],
     extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),40);wide.range.material.opacity=.8;}};
   shots[2]={world:'wide',noBeam:true,cam:orbit(F[0],fy,F[1],1000,460,.035,0,2.6),anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999,scale:11})]};
