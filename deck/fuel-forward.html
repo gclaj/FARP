@@ -255,7 +255,7 @@ p strong{color:var(--fg);font-weight:600}
 </section>
 
 <!-- 10 PHASE II -->
-<section class="slide" data-t="56" data-hold="1" data-cap="Phase two, air assault and seizure. Serials land LZ Vulture, LZ Falcon and LZ Owl. Element two seizes the FARP site. Element one occupies OBJ Husky, Poodle and Bernese to interdict the avenues of approach. Element three secures the site and pathfinders establish PZ Cedar and the rapid refuel point inside the triangle. FARP seized no later than H plus one.">
+<section class="slide" data-t="51" data-hold="1" data-cap="Phase two, air assault and seizure. Serials land LZ Vulture, LZ Falcon and LZ Owl. Element two seizes the FARP site. Element one occupies OBJ Husky, Poodle and Bernese to interdict the avenues of approach. Element three secures the site and pathfinders establish PZ Cedar and the rapid refuel point inside the triangle. FARP seized no later than H plus one.">
   <div class="right" style="width:500px">
     <div class="a hd"><div class="eyebrow">Phase II <span class="ph">air assault and seizure</span></div><h2>Land. Seize the objectives. <em>Establish the PZ.</em></h2></div>
     <div class="panel a" style="--d:.4s"><p class="small">Key tasks: GTF air assault (Lift 1), FARP seizure, pathfinder operations. Night air assault, dismounted land navigation, seize.</p>
@@ -673,18 +673,18 @@ function Engine(){
     extra:t=>{const seq=[['VULTURE',2],['OWL',5],['FALCON',8],['CEDAR',11]];obj.scan.visible=t>1.5;let p=O.VULTURE;for(const q of seq){if(t>=q[1])p=O[q[0]]}obj.scan.position.set(p[0],obj.scan.position.y,p[1]);obj.scan.material.color.set(t>=11?0x22d35a:0x6f94ff);const pulse=1+.08*Math.sin(t*4);obj.scan.scale.set(pulse,pulse,1);obj.cedarFill.material.opacity=t>11?.35+.1*Math.sin(t*3):0;}};
   // Phase II: CH-47 -> Vulture 158, CH-47 -> Owl 063, UH-60 -> Falcon 155
   const vA=back(O.VULTURE,158,520),oA=back(O.OWL,63,520),fA=back(O.FALCON,155,520);
-  shots[9]={world:'obj',noLabels:true,hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:36,v:V(O.TANG[0]+60,1000,O.TANG[1]+770,O.TANG[0],0,O.TANG[1]+10)},{t:50,v:V(O.TANG[0]+120,2300,O.TANG[1]+1500,O.TANG[0]+40,0,O.TANG[1]-120)},{t:56,v:V(O.TANG[0]+140,2350,O.TANG[1]+1520,O.TANG[0]+40,0,O.TANG[1]-120)}]),
-    anims:[flight(A.ch[0],[vA,back(O.VULTURE,158,120),O.VULTURE],1,11,{takeoff:false,alt:70}),
-      flight(A.uh[0],[fA,back(O.FALCON,155,110),O.FALCON],2.2,11,{takeoff:false,alt:65}),
-      flight(A.ch[1],[oA,back(O.OWL,63,120),O.OWL],3,11,{takeoff:false,alt:70}),
-      (()=>{const f=flight(A.ch[0],[O.VULTURE,fwd(O.VULTURE,158,120),fwd(O.VULTURE,200,700)],17,9,{alt:80,land:false});return t=>{if(t>=17)f(t)}})(),
-      (()=>{const f=flight(A.uh[0],[O.FALCON,fwd(O.FALCON,155,110),fwd(O.FALCON,200,700)],18.4,9,{alt:75,land:false});return t=>{if(t>=18.4)f(t)}})(),
-      (()=>{const f=flight(A.ch[1],[O.OWL,fwd(O.OWL,63,120),fwd(O.OWL,20,700)],19.6,9,{alt:80,land:false});return t=>{if(t>=19.6)f(t)}})(),
-      walk(T.seize,O.VULTURE,O.HUSKY,15,9),walk(T.iso7,O.FALCON,O.POODLE,19,8),walk(T.iso6,O.OWL,O.BERNESE,19,12),
-      walk(T.pf,[O.VULTURE[0]-20,O.VULTURE[1]+20],O.CEDAR,34,9)],
-    extra:t=>{const seized=(k,at)=>{const m=obj.marks[k];m.fill.material.opacity=t>at?.5:.4;m.fill.material.color.set(t>at?0x22d35a:0xd90f2a)};seized('HUSKY',25);seized('POODLE',28);seized('BERNESE',32);
-      obj.def.visible=t>25;obj.fans.forEach((f,i)=>{f.visible=t>[25,28,32][i];f.material.opacity=.55+.08*Math.sin(t*2+i)});obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;
-      obj.tri.visible=t>33;obj.cedarFill.material.opacity=t>42?.3:0;obj.pzLights.visible=t>42;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});}};
+  shots[9]={world:'obj',noLabels:true,hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:31,v:V(O.TANG[0]+60,1000,O.TANG[1]+770,O.TANG[0],0,O.TANG[1]+10)},{t:45,v:V(O.TANG[0]+120,2300,O.TANG[1]+1500,O.TANG[0]+40,0,O.TANG[1]-120)},{t:51,v:V(O.TANG[0]+140,2350,O.TANG[1]+1520,O.TANG[0]+40,0,O.TANG[1]-120)}]),
+    anims:[flight(A.ch[0],[back(O.VULTURE,158,320),back(O.VULTURE,158,120),O.VULTURE],.3,7,{takeoff:false,alt:70}),
+      flight(A.uh[0],[back(O.FALCON,155,320),back(O.FALCON,155,110),O.FALCON],.8,7,{takeoff:false,alt:65}),
+      flight(A.ch[1],[back(O.OWL,63,320),back(O.OWL,63,120),O.OWL],1.3,7,{takeoff:false,alt:70}),
+      (()=>{const f=flight(A.ch[0],[O.VULTURE,fwd(O.VULTURE,158,120),fwd(O.VULTURE,200,700)],12,9,{alt:80,land:false});return t=>{if(t>=12)f(t)}})(),
+      (()=>{const f=flight(A.uh[0],[O.FALCON,fwd(O.FALCON,155,110),fwd(O.FALCON,200,700)],13.4,9,{alt:75,land:false});return t=>{if(t>=13.4)f(t)}})(),
+      (()=>{const f=flight(A.ch[1],[O.OWL,fwd(O.OWL,63,120),fwd(O.OWL,20,700)],14.6,9,{alt:80,land:false});return t=>{if(t>=14.6)f(t)}})(),
+      walk(T.seize,O.VULTURE,O.HUSKY,10,9),walk(T.iso7,O.FALCON,O.POODLE,14,8),walk(T.iso6,O.OWL,O.BERNESE,14,12),
+      walk(T.pf,[O.VULTURE[0]-20,O.VULTURE[1]+20],O.CEDAR,29,9)],
+    extra:t=>{const seized=(k,at)=>{const m=obj.marks[k];m.fill.material.opacity=t>at?.5:.4;m.fill.material.color.set(t>at?0x22d35a:0xd90f2a)};seized('HUSKY',20);seized('POODLE',23);seized('BERNESE',27);
+      obj.def.visible=t>20;obj.fans.forEach((f,i)=>{f.visible=t>[20,23,27][i];f.material.opacity=.55+.08*Math.sin(t*2+i)});obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;
+      obj.tri.visible=t>28;obj.cedarFill.material.opacity=t>37?.3:0;obj.pzLights.visible=t>37;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});}};
   // Phase III: FATCOW into PZ Cedar / R3P, Apaches turn
   const cIn=back(O.R3P,90,900),cOut=fwd(O.R3P,90,900);
   shots[10]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(O.R3P[0]-700,300,O.R3P[1]+600,O.R3P[0],0,O.R3P[1])},{t:10,v:V(O.R3P[0]-220,150,O.R3P[1]+300,O.R3P[0]-20,0,O.R3P[1])},{t:18,v:orbit(O.R3P[0],Y,O.R3P[1],280,160,.06,18,2.2)},{t:34,v:orbit(O.R3P[0],Y,O.R3P[1],280,160,.06,18,2.2)},{t:40,v:V(O.R3P[0]-200,260,O.R3P[1]+500,O.R3P[0]+400,0,O.R3P[1]-100)}]),
