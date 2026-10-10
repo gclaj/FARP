@@ -125,7 +125,7 @@ p strong{color:var(--fg);font-weight:600}
 
 <!-- 2 REACH -->
 <section class="slide" data-t="22" data-cap="The operational problem. Division deep targets lie beyond the combat radius of attack aviation operating from the intermediate staging base. Fuel, ordnance, reserve and station time compete for the same fuel load.">
-  <div class="a hd" style="position:absolute;left:90px;bottom:60px;max-width:1420px;width:1420px;display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:center;padding:18px 26px"><div><div class="eyebrow">The problem <span class="ph">operational reach</span></div><h2 style="font-size:36px;margin-top:8px">Deep targets lie beyond <em>combat radius.</em></h2></div>
+  <div class="a hd" style="position:absolute;left:90px;bottom:6px;max-width:1420px;width:1420px;display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:center;padding:18px 26px"><div><div class="eyebrow">The problem <span class="ph">operational reach</span></div><h2 style="font-size:36px;margin-top:8px">Deep targets lie beyond <em>combat radius.</em></h2></div>
     <div><p class="small">Attack aviation combat radius is bounded by fuel load. Ordnance, required reserve and time on station all draw on the same tank. When the Division deep target sits beyond that radius, the deep attack cannot be executed from the intermediate staging base.</p>
       <div class="stats" style="margin-top:10px;gap:28px"><div class="stat"><div class="v" style="font-size:34px">180–200<span>NM</span></div><div class="l">ISB – J-FARP SITE</div></div><div class="stat"><div class="v" style="font-size:34px">100–150<span>NM</span></div><div class="l">J-FARP SITE – DIV DEEP TGT</div></div></div></div></div>
   <div class="right" style="width:420px;top:72px"><div class="panel a" style="--d:9s;border-color:rgba(255,115,132,.5);padding:14px 20px"><p class="small"><strong style="color:var(--rose)">Bingo fuel.</strong> The attack element reaches bingo short of the objective and must return to base. Terrain beyond that line remains unshaped until fuel is positioned forward.</p></div></div>
@@ -653,7 +653,7 @@ function Engine(){
       if(M.mats){const cache={};const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.6});
         M.glb.traverse(o=>{if(o.isMesh){const key=o.name.split('|')[1];o.material=key==='glass'?glass:(cache[key]=cache[key]||new THREE.MeshStandardMaterial({map:T[key],roughness:.7,metalness:.15,emissive:M.emis,emissiveIntensity:.5}));o.castShadow=true}});
         M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[];return}
-      const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.5});
+      const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.7,transparent:false,opacity:1});
       const dark=new THREE.MeshStandardMaterial({color:0x101216,roughness:.4,metalness:.2});const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.75});
       M.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:o.name==='glass'?glass:mat;o.castShadow=true}});
       M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[]};
@@ -724,7 +724,7 @@ function Engine(){
   shots[1]={world:'wide',cam:camKF([{t:0,v:V((I[0]+C[0])/2-200,2500,(I[1]+C[1])/2+3400,(I[0]+C[0])/2,-300,(I[1]+C[1])/2-200)},{t:22,v:V((I[0]+C[0])/2-100,2400,(I[1]+C[1])/2+3250,(I[0]+C[0])/2,-300,(I[1]+C[1])/2-200)}]),
     anims:[...A.ah.map((a,k)=>flight(a,[isbPark(k),[I[0]+500,I[1]-100+k*40],[F[0]-150,F[1]+40+k*40],[F[0]-250,F[1]+300+k*40],[F[0]-700,F[1]+500+k*40]],1+k*.4,19,{parked:true,land:false,alt:200}))],
     extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),40);wide.range.material.opacity=.8;}};
-  shots[2]={world:'wide',noBeam:true,cam:orbit(F[0],fy,F[1],520,260,.045,0,2.6),anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
+  shots[2]={world:'wide',noBeam:true,cam:orbit(F[0],fy,F[1],1000,460,.035,0,2.6),anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999,scale:11})]};
   shots[3]={world:'wide',cam:camKF([{t:0,v:V(F[0]-900,1000,F[1]+1600,F[0]+400,0,F[1]-200)},{t:14,v:V(F[0]+200,1200,F[1]+1500,C[0]-300,0,C[1])},{t:24,v:V(C[0]-700,700,C[1]+1100,C[0],0,C[1])}]),
     anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+500,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],2+k*.5,16,{alt:200,land:false}))],
     extra:t=>{wide.range.visible=t>1;wide.range.set(F[0],F[1],lerp(10,1150,ease((t-1)/6)),40);wide.range.material.color.set(0x22d35a);wide.range.material.opacity=.7;}};
@@ -811,7 +811,7 @@ function Engine(){
     dragOff=[0,0];shotStart=performance.now();t=0;step(0,performance.now())}
   function step(dt,now){t=(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
     shipLabels.forEach((l,k)=>{const a=A.fat[k];l.visible=worldMode==='obj'&&a.visible&&a.alt<2;if(l.visible)l.position.set(a.position.x,a.position.y+34,a.position.z)});
-    allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation[r.axis||'y']+=dt*(a.spin?30:0)*(r.dir||1)*(r.rate||1);const d=r.disc||r.children[0];if(d)d.material.opacity=a.spin?(r.disc?.22:.3):(r.disc?0:.08)});if(a.beacon)a.beacon.material.opacity=.5+.5*Math.sin(t*6);
+    allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation[r.axis||'y']+=dt*(a.spin?30:0)*(r.dir||1)*(r.rate||1);const d=r.disc||r.children[0];if(d)d.material.opacity=a.spin?(r.disc?.1:.3):(r.disc?0:.08)});if(a.beacon)a.beacon.material.opacity=.5+.5*Math.sin(t*6);
       const bl=Math.sin(t*7+a.position.x)>.92;a.nav[2].material.opacity=bl?1:0;a.nav[0].material.opacity=a.nav[1].material.opacity=.9;
       if(a.fade<1){a.traverse(o=>{if(o.isMesh&&o.material&&o.material.userData){const b=o.material.userData.base==null?1:o.material.userData.base;o.material.transparent=true;o.material.opacity=Math.min(b,a.fade)}});a.nav.forEach(l=>l.material.opacity*=a.fade);if(a.beacon)a.beacon.material.opacity*=a.fade;if(a.fade<=0){a.visible=false;a.shadow.visible=false;return}}
       const g=gY(a.position.x,a.position.z);a.shadow.position.set(a.position.x+a.alt*.12,g+1.2,a.position.z+a.alt*.1);a.shadow.rotation.y=a.rotation.y;a.shadow.scale.setScalar(a.scale.x*(1+a.alt/400));a.shadow.material.opacity=clamp(.4-a.alt/600,.12,.4)*a.fade});
