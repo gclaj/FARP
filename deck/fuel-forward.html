@@ -728,7 +728,7 @@ function Engine(){
     extra:t=>{const seq=[['VULTURE',2],['OWL',5],['FALCON',8],['CEDAR',11]];obj.scan.visible=t>1.5;let p=O.VULTURE;for(const q of seq){if(t>=q[1])p=O[q[0]]}obj.scan.position.set(p[0],obj.scan.position.y,p[1]);obj.scan.material.color.set(t>=11?0x22d35a:0x6f94ff);const pulse=1+.08*Math.sin(t*4);obj.scan.scale.set(pulse,pulse,1);obj.cedarFill.material.opacity=t>11?.35+.1*Math.sin(t*3):0;}};
   // Phase II: CH-47 -> Vulture 158, CH-47 -> Owl 063, UH-60 -> Falcon 155
   const vA=back(O.VULTURE,158,520),oA=back(O.OWL,63,520),fA=back(O.FALCON,155,520);
-  shots[9]={world:'obj',hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:56,v:V(O.TANG[0]+120,980,O.TANG[1]+760,O.TANG[0],0,O.TANG[1]+10)}]),
+  shots[9]={world:'obj',hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:36,v:V(O.TANG[0]+60,1000,O.TANG[1]+770,O.TANG[0],0,O.TANG[1]+10)},{t:50,v:V(O.TANG[0]+120,2300,O.TANG[1]+1500,O.TANG[0]+40,0,O.TANG[1]-120)},{t:56,v:V(O.TANG[0]+140,2350,O.TANG[1]+1520,O.TANG[0]+40,0,O.TANG[1]-120)}]),
     anims:[flight(A.ch[0],[vA,back(O.VULTURE,158,120),O.VULTURE],1,11,{takeoff:false,alt:70}),
       flight(A.uh[0],[fA,back(O.FALCON,155,110),O.FALCON],2.2,11,{takeoff:false,alt:65}),
       flight(A.ch[1],[oA,back(O.OWL,63,120),O.OWL],3,11,{takeoff:false,alt:70}),
