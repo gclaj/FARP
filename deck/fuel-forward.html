@@ -605,6 +605,7 @@ function Engine(){
     obj.probes=[0,1,2].map(()=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff2233,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.scale.set(30,30,1);sp.visible=false;obj.add(sp);const core=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color:0xff6677,transparent:true,depthWrite:false}));core.scale.set(.35,.35,1);sp.add(core);return sp});
     obj.flashes=[];for(let i=0;i<18;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%3===0?0xffffff:0xffe46a,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.scale.set(22,22,1);sp.visible=false;obj.add(sp);obj.flashes.push(sp)}
     obj.scan=ring(90,8,0x6f94ff);obj.scan.position.y=Y+1;obj.scan.visible=false;obj.add(obj.scan);
+    obj.labels=[];obj.traverse(o=>{if(o.isSprite&&o.material&&o.material.sizeAttenuation===false){o.userData.defVis=o.visible;obj.labels.push(o)}});
   })();
 
   /* ===== aircraft as top-view icons in the GTF slide's style ===== */
@@ -661,6 +662,7 @@ function Engine(){
   /* ===== hoses and refuel points at the R3P ===== */
   const hoses=new THREE.Group();obj.add(hoses);hoses.visible=false;
   const shipLabels=[makeLabel('WETCOW · Class III','#ffd98a',24,.2),makeLabel('FATCOW · Class V','#ffb3a0',24,.2)];shipLabels.forEach(l=>{l.visible=false;scene.add(l)});
+  const lateLabels=()=>{hoses.traverse(o=>{if(o.isSprite&&o.material&&o.material.sizeAttenuation===false&&!obj.labels.includes(o)){o.userData.defVis=o.visible;obj.labels.push(o)}})};
   const hoseMat=new THREE.MeshStandardMaterial({color:0xf4b94a,emissive:0xf4b94a,emissiveIntensity:.5,roughness:.6});
   const fatPos=[O.R3P[0]-20,O.R3P[1]+10],ptA=[O.R3P[0]+70,O.R3P[1]-30],ptB=[O.R3P[0]+70,O.R3P[1]+50];
   const hoseGeo=(a,b)=>new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(a[0]+8,Y+1,a[1]),new THREE.Vector3((a[0]+b[0])/2,Y+1,(a[1]+b[1])/2+(b[1]>a[1]?6:-6)),new THREE.Vector3(b[0]-8,Y+1,b[1])]),40,.7,8,false);
@@ -724,12 +726,12 @@ function Engine(){
     extra:t=>{const f=1-clamp((t-16)/5,0,1);A.ch.concat(A.uh).forEach(a=>{a.fade=f})}};
   shots[5]={world:'obj',cam:camKF([{t:0,v:V(-400,1500,1300,0,0,0)},{t:22,v:V(300,1300,1100,0,0,-100)}]),anims:[]};
   shots[6]={world:'obj',cam:camKF([{t:0,v:V(0,1900,300,0,0,0)},{t:22,v:V(100,1700,250,0,0,-50)}]),anims:[]};
-  shots[7]={world:'obj',cam:camKF([{t:0,v:V(-1200,900,900,-100,0,0)},{t:24,v:V(-900,1000,1200,0,0,0)}]),anims:[]};
-  shots[8]={world:'obj',cam:camKF([{t:0,v:V(500,1500,900,0,0,0)},{t:12,v:V(-200,1100,800,O.CEDAR[0],0,O.CEDAR[1])},{t:26,v:V(O.CEDAR[0]-500,600,O.CEDAR[1]+700,O.CEDAR[0],0,O.CEDAR[1])}]),anims:[],
+  shots[7]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(-1200,900,900,-100,0,0)},{t:24,v:V(-900,1000,1200,0,0,0)}]),anims:[]};
+  shots[8]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(500,1500,900,0,0,0)},{t:12,v:V(-200,1100,800,O.CEDAR[0],0,O.CEDAR[1])},{t:26,v:V(O.CEDAR[0]-500,600,O.CEDAR[1]+700,O.CEDAR[0],0,O.CEDAR[1])}]),anims:[],
     extra:t=>{const seq=[['VULTURE',2],['OWL',5],['FALCON',8],['CEDAR',11]];obj.scan.visible=t>1.5;let p=O.VULTURE;for(const q of seq){if(t>=q[1])p=O[q[0]]}obj.scan.position.set(p[0],obj.scan.position.y,p[1]);obj.scan.material.color.set(t>=11?0x22d35a:0x6f94ff);const pulse=1+.08*Math.sin(t*4);obj.scan.scale.set(pulse,pulse,1);obj.cedarFill.material.opacity=t>11?.35+.1*Math.sin(t*3):0;}};
   // Phase II: CH-47 -> Vulture 158, CH-47 -> Owl 063, UH-60 -> Falcon 155
   const vA=back(O.VULTURE,158,520),oA=back(O.OWL,63,520),fA=back(O.FALCON,155,520);
-  shots[9]={world:'obj',hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:36,v:V(O.TANG[0]+60,1000,O.TANG[1]+770,O.TANG[0],0,O.TANG[1]+10)},{t:50,v:V(O.TANG[0]+120,2300,O.TANG[1]+1500,O.TANG[0]+40,0,O.TANG[1]-120)},{t:56,v:V(O.TANG[0]+140,2350,O.TANG[1]+1520,O.TANG[0]+40,0,O.TANG[1]-120)}]),
+  shots[9]={world:'obj',noLabels:true,hold:true,cam:camKF([{t:0,v:V(O.TANG[0]-200,1040,O.TANG[1]+800,O.TANG[0],0,O.TANG[1]+10)},{t:36,v:V(O.TANG[0]+60,1000,O.TANG[1]+770,O.TANG[0],0,O.TANG[1]+10)},{t:50,v:V(O.TANG[0]+120,2300,O.TANG[1]+1500,O.TANG[0]+40,0,O.TANG[1]-120)},{t:56,v:V(O.TANG[0]+140,2350,O.TANG[1]+1520,O.TANG[0]+40,0,O.TANG[1]-120)}]),
     anims:[flight(A.ch[0],[vA,back(O.VULTURE,158,120),O.VULTURE],1,11,{takeoff:false,alt:70}),
       flight(A.uh[0],[fA,back(O.FALCON,155,110),O.FALCON],2.2,11,{takeoff:false,alt:65}),
       flight(A.ch[1],[oA,back(O.OWL,63,120),O.OWL],3,11,{takeoff:false,alt:70}),
@@ -743,7 +745,7 @@ function Engine(){
       obj.tri.visible=t>33;obj.cedarFill.material.opacity=t>42?.3:0;obj.pzLights.visible=t>42;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});}};
   // Phase III: FATCOW into PZ Cedar / R3P, Apaches turn
   const cIn=back(O.R3P,90,900),cOut=fwd(O.R3P,90,900);
-  shots[10]={world:'obj',cam:camKF([{t:0,v:V(O.R3P[0]-700,300,O.R3P[1]+600,O.R3P[0],0,O.R3P[1])},{t:10,v:V(O.R3P[0]-220,150,O.R3P[1]+300,O.R3P[0]-20,0,O.R3P[1])},{t:18,v:orbit(O.R3P[0],Y,O.R3P[1],280,160,.06,18,2.2)},{t:34,v:orbit(O.R3P[0],Y,O.R3P[1],280,160,.06,18,2.2)},{t:40,v:V(O.R3P[0]-200,260,O.R3P[1]+500,O.R3P[0]+400,0,O.R3P[1]-100)}]),
+  shots[10]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(O.R3P[0]-700,300,O.R3P[1]+600,O.R3P[0],0,O.R3P[1])},{t:10,v:V(O.R3P[0]-220,150,O.R3P[1]+300,O.R3P[0]-20,0,O.R3P[1])},{t:18,v:orbit(O.R3P[0],Y,O.R3P[1],280,160,.06,18,2.2)},{t:34,v:orbit(O.R3P[0],Y,O.R3P[1],280,160,.06,18,2.2)},{t:40,v:V(O.R3P[0]-200,260,O.R3P[1]+500,O.R3P[0]+400,0,O.R3P[1]-100)}]),
     anims:[flight(A.fat[0],[cIn,[fatPos[0]-300,fatPos[1]],fatPos],1,10,{takeoff:false,alt:60,spinAfter:999}),
       flight(A.fat[1],[[cIn[0]-150,cIn[1]+110],[fatPos[0]-380,fatPos[1]+110],[fatPos[0]-30,fatPos[1]+110]],2.2,10,{takeoff:false,alt:60,spinAfter:14}),
       walk(T.fuel,[fatPos[0]+10,fatPos[1]],[ptA[0]-10,ptA[1]+8],12,4),walk(T.pf,O.CEDAR,O.CEDAR,0,1,{pre:true}),
@@ -755,7 +757,7 @@ function Engine(){
     extra:t=>{obj.pzLights.visible=true;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});obj.cedarFill.material.opacity=.25;hoses.visible=t>11.5;const n=hA.geometry.index.count;hA.geometry.setDrawRange(0,Math.floor(n*ease((t-11.5)/3)));hB.geometry.setDrawRange(0,Math.floor(n*ease((t-12)/3)));const on=t>27&&t<35?1:0;fpl.forEach(l=>l.intensity=lerp(l.intensity,on*2.2,.1));fp.forEach((r,i)=>{r.material.opacity=t>14?.5+.4*Math.sin(t*4+i):0});obj.def.visible=true;obj.fans.forEach(f=>{f.visible=true;f.material.opacity=.4});obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;obj.tri.visible=true;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.5;obj.marks[k].fill.material.color.set(0x22d35a)});}};
   // Phase IV: defense from the objectives, wide; three probes engaged in sector
   const ENG=[{obj:'HUSKY',from:[O.HUSKY[0]+40,O.HUSKY[1]-620],t0:10},{obj:'POODLE',from:[O.POODLE[0]+620,O.POODLE[1]+40],t0:16},{obj:'BERNESE',from:[O.BERNESE[0]+460,O.BERNESE[1]+460],t0:22}];
-  shots[11]={world:'obj',cam:camKF([{t:0,v:V(O.TANG[0]-150,1750,O.TANG[1]+1250,O.TANG[0]+20,0,O.TANG[1]-60)},{t:34,v:V(O.TANG[0]+150,1700,O.TANG[1]+1200,O.TANG[0]+20,0,O.TANG[1]-60)}]),
+  shots[11]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(O.TANG[0]-150,1750,O.TANG[1]+1250,O.TANG[0]+20,0,O.TANG[1]-60)},{t:34,v:V(O.TANG[0]+150,1700,O.TANG[1]+1200,O.TANG[0]+20,0,O.TANG[1]-60)}]),
     anims:[flight(A.fat[0],[fatPos,[fatPos[0]+1,fatPos[1]]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999}),
       walk(T.sec,[O.R3P[0]-90,O.R3P[1]+90],[O.R3P[0]-90,O.R3P[1]+90],0,1,{pre:true}),walk(T.pf,O.CEDAR,O.CEDAR,0,1,{pre:true}),walk(T.seize,O.HUSKY,O.HUSKY,0,1,{pre:true}),walk(T.iso7,O.POODLE,O.POODLE,0,1,{pre:true}),walk(T.iso6,O.BERNESE,O.BERNESE,0,1,{pre:true})],
     extra:t=>{obj.pzLights.visible=true;hoses.visible=true;hA.geometry.setDrawRange(0,Infinity);hB.geometry.setDrawRange(0,Infinity);obj.def.visible=true;obj.fans.forEach((f,i)=>{f.visible=t>2+i*.5;f.material.opacity=.5+.06*Math.sin(t*2+i)});obj.op.forEach((o,i)=>o.visible=t>5+i*.5);obj.mtr.visible=t>8;obj.tri.visible=true;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.45;obj.marks[k].fill.material.color.set(0x22d35a)});
@@ -765,26 +767,26 @@ function Engine(){
   // Patrol base doctrine: triangle, apex weapons, leg fans in pairs, interlock pulse, centre
   const TC=[(O.HUSKY[0]+O.POODLE[0]+O.BERNESE[0])/3,(O.HUSKY[1]+O.POODLE[1]+O.BERNESE[1])/3];
   const holdTeams=[walk(T.seize,O.HUSKY,O.HUSKY,0,1,{pre:true}),walk(T.iso7,O.POODLE,O.POODLE,0,1,{pre:true}),walk(T.iso6,O.BERNESE,O.BERNESE,0,1,{pre:true}),walk(T.sec,[O.R3P[0]-90,O.R3P[1]+90],[O.R3P[0]-90,O.R3P[1]+90],0,1,{pre:true}),walk(T.pf,O.CEDAR,O.CEDAR,0,1,{pre:true}),flight(A.fat[0],[fatPos,[fatPos[0]+1,fatPos[1]]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999}),flight(A.fat[1],[[fatPos[0]-30,fatPos[1]+110],[fatPos[0]-29,fatPos[1]+110]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})];
-  shots[12]={world:'obj',cam:camKF([{t:0,v:V(TC[0]-180,1500,TC[1]+40,TC[0]-180,0,TC[1])},{t:40,v:V(TC[0]-120,1350,TC[1]+320,TC[0]-180,0,TC[1])}]),anims:holdTeams,
+  shots[12]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(TC[0]-180,1500,TC[1]+40,TC[0]-180,0,TC[1])},{t:40,v:V(TC[0]-120,1350,TC[1]+320,TC[0]-180,0,TC[1])}]),anims:holdTeams,
     extra:t=>{obj.pzLights.visible=true;hoses.visible=true;hA.geometry.setDrawRange(0,Infinity);hB.geometry.setDrawRange(0,Infinity);obj.def.visible=true;obj.fans.forEach(f=>f.visible=false);obj.op.forEach(o=>o.visible=false);obj.mtr.visible=t>22;
       obj.tri.visible=t>2;obj.triFill.material.opacity=t>2?.14:0;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.45;obj.marks[k].fill.material.color.set(0x22d35a)});
       obj.mgLabels.forEach(l=>l.visible=t>9&&t<15);
       obj.legFans.forEach((f,k)=>{f.visible=t>15+k*2.5;f.material.opacity=t>24?.62+.22*Math.sin(t*2.5+k*2.1):.62});
       obj.cedarFill.material.opacity=t>22?.35:.12;}};
   // Applied: outward sectors, leg sectors, OPs, mortars, a probe caught on the Poodle–Bernese leg
-  shots[13]={world:'obj',cam:camKF([{t:0,v:V(TC[0]-200,1300,TC[1]+500,TC[0]-180,0,TC[1])},{t:40,v:V(TC[0]-420,1150,TC[1]+620,TC[0]-180,0,TC[1])}]),anims:holdTeams,
+  shots[13]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(TC[0]-200,1300,TC[1]+500,TC[0]-180,0,TC[1])},{t:40,v:V(TC[0]-420,1150,TC[1]+620,TC[0]-180,0,TC[1])}]),anims:holdTeams,
     extra:t=>{obj.pzLights.visible=true;hoses.visible=true;hA.geometry.setDrawRange(0,Infinity);hB.geometry.setDrawRange(0,Infinity);obj.def.visible=true;obj.tri.visible=true;obj.triFill.material.opacity=.14;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.45;obj.marks[k].fill.material.color.set(0x22d35a)});
       obj.fans.forEach((f,i)=>{f.visible=t>3+i*.5;f.material.opacity=.5+.06*Math.sin(t*2+i)});obj.legFans.forEach((f,i)=>{f.visible=t>8+i*.4;f.material.opacity=.62});obj.op.forEach((o,i)=>o.visible=t>22+i*.5);obj.mtr.visible=t>24;obj.cedarFill.material.opacity=t>28?.35:.12;
       const pt=t-14;obj.threat.visible=pt>0&&pt<8;if(obj.threat.visible){const u=clamp(pt/5,0,1);const mid=[(O.POODLE[0]+O.BERNESE[0])/2,(O.POODLE[1]+O.BERNESE[1])/2];const x=lerp(mid[0]+420,mid[0]+30,u),z=lerp(mid[1]+60,mid[1],u);obj.threat.position.set(x,Y+12,z);obj.threat.material.opacity=pt>5?1-(pt-5)/3:1;obj.threat.scale.setScalar(26+(pt>5?34*(pt-5):0));if(pt>5){obj.legFans[2].material.opacity=.95;obj.marks.POODLE.fill.material.opacity=.8}}}};
   // Collapse
-  shots[14]={world:'obj',cam:camKF([{t:0,v:V(O.R3P[0]-300,220,O.R3P[1]+420,O.R3P[0],0,O.R3P[1])},{t:8,v:V(O.R3P[0]-200,260,O.R3P[1]+420,O.R3P[0]+100,20,O.R3P[1])},{t:16,v:V(O.R3P[0]+100,700,O.R3P[1]+900,O.R3P[0]+200,0,O.R3P[1]-100)},{t:28,v:V(O.R3P[0]-400,1500,O.R3P[1]+1600,O.R3P[0]+300,0,O.R3P[1]-300)}]),
+  shots[14]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(O.R3P[0]-300,220,O.R3P[1]+420,O.R3P[0],0,O.R3P[1])},{t:8,v:V(O.R3P[0]-200,260,O.R3P[1]+420,O.R3P[0]+100,20,O.R3P[1])},{t:16,v:V(O.R3P[0]+100,700,O.R3P[1]+900,O.R3P[0]+200,0,O.R3P[1]-100)},{t:28,v:V(O.R3P[0]-400,1500,O.R3P[1]+1600,O.R3P[0]+300,0,O.R3P[1]-300)}]),
     anims:[flight(A.fat[0],[fatPos,[fatPos[0]+350,fatPos[1]-30],[cOut[0],cOut[1]-250]],3,10,{parked:true,alt:80,land:false}),
       flight(A.ch[0],[[fatPos[0]-30,fatPos[1]+110],[fatPos[0]+350,fatPos[1]+60],[cOut[0],cOut[1]+250]],9,10,{parked:true,alt:80,land:false}),
       flight(A.ch[1],[[fatPos[0]+60,fatPos[1]-120],[fatPos[0]+400,fatPos[1]-120],[cOut[0]+200,cOut[1]-420]],15,10,{parked:true,alt:80,land:false}),
       walk(T.sec,[O.R3P[0]-90,O.R3P[1]+90],[fatPos[0]-30,fatPos[1]+110],0,6,{pre:true,fade:9}),walk(T.pf,O.CEDAR,[fatPos[0]+60,fatPos[1]-120],6,8,{pre:true,fade:15}),walk(T.seize,O.HUSKY,[fatPos[0]+60,fatPos[1]-120],2,10,{pre:true,fade:15}),walk(T.iso7,O.POODLE,[fatPos[0]+70,fatPos[1]-130],4,10,{pre:true,fade:15}),walk(T.iso6,O.BERNESE,[fatPos[0]-30,fatPos[1]+120],2,8,{pre:true,fade:9})],
     extra:t=>{obj.pzLights.visible=t<16;obj.pzLights.children.forEach((s,i)=>{s.material.opacity=.6+.4*Math.sin(t*5+i)});hoses.visible=false;obj.def.visible=t<14;obj.fans.forEach((f,i)=>{f.visible=t<[6,8,10][i]});obj.op.forEach(o=>o.visible=false);obj.mtr.visible=false;obj.tri.visible=t<12;['HUSKY','POODLE','BERNESE'].forEach((k,i)=>{obj.marks[k].fill.material.opacity=t<[6,8,10][i]?.5:.4});obj.cedarFill.material.opacity=t<16?.25:0;}};
   shots[15]={world:'wide',cam:camKF([{t:0,v:V(F[0]+500,1500,F[1]+1000,F[0]-900,0,F[1]-200)},{t:20,v:V(F[0]+200,1700,F[1]+900,F[0]-1200,0,F[1]-100)}]),anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999})]};
-  shots[16]={world:'obj',cam:camKF([{t:0,v:V(oA[0]-400,600,oA[1]+500,O.OWL[0],0,O.OWL[1])},{t:24,v:V(O.CEDAR[0]-700,500,O.CEDAR[1]+800,O.CEDAR[0],0,O.CEDAR[1])}]),
+  shots[16]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(oA[0]-400,600,oA[1]+500,O.OWL[0],0,O.OWL[1])},{t:24,v:V(O.CEDAR[0]-700,500,O.CEDAR[1]+800,O.CEDAR[0],0,O.CEDAR[1])}]),
     anims:[flight(A.ch[0],[vA,back(O.VULTURE,158,120),O.VULTURE],2,12,{takeoff:false,alt:70}),flight(A.ch[1],[oA,back(O.OWL,63,120),O.OWL],3.2,12,{takeoff:false,alt:70}),flight(A.uh[0],[fA,back(O.FALCON,155,110),O.FALCON],4.4,12,{takeoff:false,alt:65})],
     extra:t=>{obj.def.visible=false;obj.pzLights.visible=false;hoses.visible=false;obj.tri.visible=false}};
   shots[17]={world:'wide',noBeam:true,cam:orbit(F[0]+200,0,F[1]-100,2300,1500,.02,0,2.2),anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+600,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],3+k*.5,20,{alt:220,land:false}))],extra:t=>{wide.range.visible=false}};
@@ -797,7 +799,7 @@ function Engine(){
     if(w==='wide'){shadowBox(3400);sun.position.set(-1400,2600,-1800);sun.target.position.set(0,0,0);sun.intensity=.95;hemi.intensity=.42}else{shadowBox(950);sun.position.set(-700,1300,-500);sun.target.position.set(0,0,0);sun.intensity=1.25;hemi.intensity=.6}}
   function resetObj(){obj.probes.forEach(p=>p.visible=false);obj.flashes.forEach(f=>f.visible=false);obj.legFans.forEach(f=>f.visible=false);obj.mgLabels.forEach(l=>l.visible=false);obj.pzLights.visible=false;hoses.visible=false;obj.def.visible=false;obj.tri.visible=false;obj.triFill.material.opacity=0;obj.cedarFill.material.opacity=0;obj.scan.visible=false;obj.threat.visible=false;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.4;obj.marks[k].fill.material.color.set(0xd90f2a)});obj.fans.forEach(f=>f.visible=false)}
   function startShot(i){if(!shots.length){pendingShot=i;return}shot=shots[i]||shots[0];setWorld(shot.world);(wide.beams||[]).forEach((b,i)=>{b.visible=!shot.noBeam;b.material.opacity=i%2===0?.35:.95});allAC.forEach(a=>{a.visible=false;a.shadow.visible=false;a.spin=0;if(a.fade<1){a.fade=1;a.traverse(o=>{if(o.isMesh&&o.material&&o.material.userData&&o.material.userData.base!=null){o.material.opacity=o.material.userData.base;o.material.transparent=o.material.userData.base<1}})}});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x1e4fe0);resetObj();
-    dragOff=[0,0];held=!!shot.hold;shotStart=performance.now();t=0;step(0,performance.now())}
+    lateLabels();if(!shot.noLabels)obj.labels.forEach(l=>l.visible=l.userData.defVis);dragOff=[0,0];held=!!shot.hold;shotStart=performance.now();t=0;step(0,performance.now())}
   function release(){if(held){held=false;shotStart=performance.now()}}
   function step(dt,now){t=held?0:(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
     shipLabels.forEach((l,k)=>{const a=A.fat[k];l.visible=worldMode==='obj'&&a.visible&&a.alt<2;if(l.visible)l.position.set(a.position.x,a.position.y+34,a.position.z)});
@@ -806,6 +808,7 @@ function Engine(){
       if(a.fade<1){a.traverse(o=>{if(o.isMesh&&o.material&&o.material.userData){const b=o.material.userData.base==null?1:o.material.userData.base;o.material.transparent=true;o.material.opacity=Math.min(b,a.fade)}});a.nav.forEach(l=>l.material.opacity*=a.fade);if(a.beacon)a.beacon.material.opacity*=a.fade;if(a.fade<=0){a.visible=false;a.shadow.visible=false;return}}
       const g=gY(a.position.x,a.position.z);a.shadow.position.set(a.position.x+a.alt*.12,g+1.2,a.position.z+a.alt*.1);a.shadow.rotation.y=a.rotation.y;a.shadow.scale.setScalar(a.scale.x*(1+a.alt/400));a.shadow.material.opacity=clamp(.4-a.alt/600,.12,.4)*a.fade});
     wide.farpRing&&(wide.farpRing.material.opacity=.7+.3*Math.sin(t*2.5));wide.isbRing&&(wide.isbRing.material.opacity=.7+.3*Math.sin(t*2.2));wide.tgtRing&&(wide.tgtRing.material.opacity=.7+.3*Math.sin(t*3),wide.tgtRing.scale.setScalar(1+.06*Math.sin(t*3)));
+    if(shot.noLabels){obj.labels.forEach(l=>l.visible=false);shipLabels.forEach(l=>l.visible=false)}
     const c=shot.cam(t);camera.position.set(c.pos[0]+mouse[0]*22,c.pos[1]-mouse[1]*12,c.pos[2]);
     const look=new THREE.Vector3(c.look[0],c.look[1],c.look[2]);
     if(dragOff[0]||dragOff[1]){const dir=look.clone().sub(camera.position);const sph=new THREE.Spherical().setFromVector3(dir);sph.theta-=dragOff[0];sph.phi=clamp(sph.phi-dragOff[1],.2,1.5);dir.setFromSpherical(sph);look.copy(camera.position).add(dir)}
