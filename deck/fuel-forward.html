@@ -651,9 +651,9 @@ function Engine(){
   Object.keys(MODELS).forEach(kind=>{const M=MODELS[kind];const tl=new THREE.TextureLoader();const T={};let n=0;const want=M.mats||M.tex;const need=Object.keys(want).length;
     const ready=()=>{if(n<need||!M.glb)return;
       if(M.mats){const cache={};const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.6});
-        M.glb.traverse(o=>{if(o.isMesh){const key=o.name.split('|')[1];o.material=key==='glass'?glass:(cache[key]=cache[key]||new THREE.MeshStandardMaterial({map:T[key],roughness:.7,metalness:.15,emissive:M.emis,emissiveIntensity:.5}));o.castShadow=true}});
+        M.glb.traverse(o=>{if(o.isMesh){const key=o.name.split('|')[1];o.material=key==='glass'?glass:(cache[key]=cache[key]||new THREE.MeshStandardMaterial({map:T[key],color:0xb3b3b3,roughness:.7,metalness:.15,emissive:M.emis,emissiveIntensity:.35}));o.castShadow=true}});
         M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[];return}
-      const mat=new THREE.MeshStandardMaterial({map:T.map,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.7,transparent:false,opacity:1});
+      const mat=new THREE.MeshStandardMaterial({map:T.map,color:0xb3b3b3,normalMap:T.normalMap,aoMap:T.orm,roughnessMap:T.orm,metalnessMap:T.orm,metalness:1,roughness:1,emissive:M.emis,emissiveIntensity:.5,transparent:false,opacity:1});
       const dark=new THREE.MeshStandardMaterial({color:0x101216,roughness:.4,metalness:.2});const glass=new THREE.MeshStandardMaterial({color:0x8fb4c8,roughness:.15,metalness:.6,transparent:true,opacity:.75});
       M.glb.traverse(o=>{if(o.isMesh){o.geometry.setAttribute('uv2',o.geometry.attributes.uv);o.material=o.name==='dark'?dark:o.name==='glass'?glass:mat;o.castShadow=true}});
       M.proto=M.glb;M.waiting.forEach(f=>f());M.waiting=[]};
