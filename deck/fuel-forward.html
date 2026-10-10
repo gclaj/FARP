@@ -148,17 +148,17 @@ p strong{color:var(--fg);font-weight:600}
 </section>
 
 <!-- 4 WHY -->
-<section class="slide" data-t="24" data-cap="Why it matters. A FARP positioned 180 to 200 nautical miles forward places the Division deep target inside attack aviation combat radius, with full fuel on arrival, increased time on station and the ability to turn aircraft forward rather than return to the ISB.">
+<section class="slide" data-t="30" data-hold="1" data-cap="Why it matters. A FARP positioned 180 to 200 nautical miles forward places the Division deep target inside attack aviation combat radius, with full fuel on arrival, increased time on station and the ability to turn aircraft forward rather than return to the ISB.">
   <div class="left">
     <div class="a hd"><div class="eyebrow">Purpose <span class="ph">the Division deep area</span></div><h2>A FARP <em>extends operational reach.</em></h2></div>
     <div class="panel a" style="--d:.4s"><p>The Division deep area is the terrain beyond the close fight, where aviation shapes enemy forces before the main effort arrives. Reaching it is a sustainment problem before it is a tactical one.</p>
       <ul class="list" style="margin-top:16px">
-        <li class="a" style="--d:6s"><div><b>Reach.</b> Refuel 200 NM forward and targets 300 NM from the ISB fall inside combat radius.</div></li>
-        <li class="a" style="--d:8s"><div><b>Station time.</b> Aircraft arrive on the objective with a full fuel load rather than a reserve.</div></li>
-        <li class="a" style="--d:10s"><div><b>Tempo.</b> Aircraft turn forward at the FARP in minutes instead of returning hours to the ISB.</div></li>
-        <li class="a" style="--d:12s"><div><b>Mass.</b> More sorties on the objective within the same window. The mission statement is explicit: mass combat power in the Division deep area.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Reach.</b> Refuel 200 NM forward and targets 300 NM from the ISB fall inside combat radius.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Station time.</b> Aircraft arrive on the objective with a full fuel load rather than a reserve.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Tempo.</b> Aircraft turn forward at the FARP in minutes instead of returning hours to the ISB.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Mass.</b> More sorties on the objective within the same window. The mission statement is explicit: mass combat power in the Division deep area.</div></li>
       </ul></div>
-    <p class="a small" style="--d:14s;padding:0 6px"><strong>For the 101st,</strong> the J-FARP is the enabler for the large-scale, long-range air assault. The deep attack sets conditions on the follow-on objective. The J-FARP sets conditions for the deep attack.</p>
+    <p class="a small" style="--d:.5s;padding:0 6px"><strong>For the 101st,</strong> the J-FARP is the enabler for the large-scale, long-range air assault. The deep attack sets conditions on the follow-on objective. The J-FARP sets conditions for the deep attack.</p>
   </div>
   <div class="foot"><span>Reach · station time · tempo · mass</span><span>04</span></div>
 </section>
@@ -726,7 +726,7 @@ function Engine(){
     extra:t=>{wide.range.visible=t>2;wide.range.set(I[0],I[1],lerp(10,1250,ease((t-2)/9)),40);wide.range.material.opacity=.8;}};
   shots[2]={world:'wide',cam:camKF([{t:0,v:V(I[0]-1350,2000,I[1]+2750,(I[0]+C[0])/2+100,-250,(I[1]+C[1])/2-100)},{t:22,v:V(F[0]-620,330,F[1]+760,F[0],fy,F[1])}]),anims:[flight(A.fat[0],[[F[0]-40,F[1]+10],[F[0]+40,F[1]-10]],-50,1,{parked:true,takeoff:false,land:false,alt:0,spinAfter:999,scale:8})],
     extra:t=>{const k=1-ease((t-6)/8);(wide.beams||[]).forEach((b,i)=>{b.material.opacity=(i%2===0?.35:.95)*k})}};
-  shots[3]={world:'wide',cam:camKF([{t:0,v:V(F[0]-900,1000,F[1]+1600,F[0]+400,0,F[1]-200)},{t:14,v:V(F[0]+200,1200,F[1]+1500,C[0]-300,0,C[1])},{t:24,v:V(C[0]-700,700,C[1]+1100,C[0],0,C[1])}]),
+  shots[3]={world:'wide',hold:true,cam:camKF([{t:0,v:V(F[0]-900,1000,F[1]+1600,F[0]+400,0,F[1]-200)},{t:14,v:V(F[0]+200,1200,F[1]+1500,C[0]-300,0,C[1])},{t:24,v:V(C[0]-700,700,C[1]+1100,C[0],0,C[1])}]),
     anims:[...A.ah.map((a,k)=>flight(a,[[F[0]-40,F[1]+30*k],[F[0]+500,F[1]-150+30*k],[C[0]-200,C[1]+150+40*k]],2+k*.5,16,{alt:200,land:false}))],
     extra:t=>{wide.range.visible=t>1;wide.range.set(F[0],F[1],lerp(10,1150,ease((t-1)/6)),40);wide.range.material.color.set(0x22d35a);wide.range.material.opacity=.7;}};
   shots[4]={world:'wide',cam:camKF([{t:0,v:V(I[0]-850,850,I[1]+1100,I[0],0,I[1])},{t:4,v:chase(A.ch[0],-470,150,-320)},{t:12,v:chase(A.ch[0],-470,150,-320)},{t:16,v:V(F[0]-360,1080,F[1]+1560,F[0],0,F[1])},{t:19,v:follow(T.seize,-320,370,780)},{t:25,v:follow(T.seize,-320,370,780)},{t:29,v:V(F[0]-120,750,F[1]+1080,F[0],0,F[1])},{t:31,v:V(F[0]+240,510,F[1]+850,F[0]+100,0,F[1]+100)},{t:34,v:V(F[0]+240,510,F[1]+850,F[0]+100,0,F[1]+100)},{t:40,v:V((F[0]+C[0])/2-360,1800,(F[1]+C[1])/2+2300,(F[0]+C[0])/2,0,(F[1]+C[1])/2-100)},{t:46,v:V((F[0]+C[0])/2-240,1750,(F[1]+C[1])/2+2180,(F[0]+C[0])/2,0,(F[1]+C[1])/2-100)}]),
@@ -804,13 +804,14 @@ function Engine(){
   function onWideReady(){if(!shots.length){shots=buildShots();if(pendingShot!=null){const k=pendingShot;pendingShot=null;startShot(k)}}document.getElementById('load').classList.add('off')}
 
   /* ===== runtime ===== */
-  let shot=null,t=0,shotStart=performance.now(),last=performance.now(),mouse=[0,0],drag=null,dragOff=[0,0];
+  let shot=null,t=0,held=false,shotStart=performance.now(),last=performance.now(),mouse=[0,0],drag=null,dragOff=[0,0];
   function setWorld(w){worldMode=w;wide.visible=w==='wide';obj.visible=w==='obj';scene.fog=w==='wide'?new THREE.FogExp2(0x070b18,.00014):new THREE.FogExp2(0x070b18,.00032);
     if(w==='wide'){shadowBox(3400);sun.position.set(-1400,2600,-1800);sun.target.position.set(0,0,0);sun.intensity=.95;hemi.intensity=.42}else{shadowBox(950);sun.position.set(-700,1300,-500);sun.target.position.set(0,0,0);sun.intensity=1.25;hemi.intensity=.6}}
   function resetObj(){obj.legFans.forEach(f=>f.visible=false);obj.mgLabels.forEach(l=>l.visible=false);obj.pzLights.visible=false;hoses.visible=false;obj.def.visible=false;obj.tri.visible=false;obj.triFill.material.opacity=0;obj.cedarFill.material.opacity=0;obj.scan.visible=false;obj.threat.visible=false;['HUSKY','POODLE','BERNESE'].forEach(k=>{obj.marks[k].fill.material.opacity=.4;obj.marks[k].fill.material.color.set(0xd90f2a)});obj.fans.forEach(f=>f.visible=false)}
   function startShot(i){if(!shots.length){pendingShot=i;return}shot=shots[i]||shots[0];setWorld(shot.world);(wide.beams||[]).forEach((b,i)=>{b.visible=!shot.noBeam;b.material.opacity=i%2===0?.35:.95});allAC.forEach(a=>{a.visible=false;a.shadow.visible=false;a.spin=0;if(a.fade<1){a.fade=1;a.traverse(o=>{if(o.isMesh&&o.material&&o.material.userData&&o.material.userData.base!=null){o.material.opacity=o.material.userData.base;o.material.transparent=o.material.userData.base<1}})}});teams.forEach(tm=>tm.visible=false);wide.range.visible=false;wide.range.material.color.set(0x1e4fe0);resetObj();
-    dragOff=[0,0];shotStart=performance.now();t=0;step(0,performance.now())}
-  function step(dt,now){t=(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
+    dragOff=[0,0];held=!!shot.hold;shotStart=performance.now();t=0;step(0,performance.now())}
+  function release(){if(held){held=false;shotStart=performance.now()}}
+  function step(dt,now){t=held?0:(now-shotStart)/1000;if(!shot)return;shot.anims.forEach(f=>f(t));if(shot.extra)shot.extra(t);
     shipLabels.forEach((l,k)=>{const a=A.fat[k];l.visible=worldMode==='obj'&&a.visible&&a.alt<2;if(l.visible)l.position.set(a.position.x,a.position.y+34,a.position.z)});
     allAC.forEach(a=>{a.shadow.visible=a.visible;if(!a.visible)return;a.rotors.forEach(r=>{r.blades.rotation[r.axis||'y']+=dt*(a.spin?30:0)*(r.dir||1)*(r.rate||1);const d=r.disc||r.children[0];if(d)d.material.opacity=a.spin?(r.disc?.1:.3):(r.disc?0:.08)});if(a.beacon)a.beacon.material.opacity=.5+.5*Math.sin(t*6);
       const bl=Math.sin(t*7+a.position.x)>.92;a.nav[2].material.opacity=bl?1:0;a.nav[0].material.opacity=a.nav[1].material.opacity=.9;
@@ -827,13 +828,13 @@ function Engine(){
   addEventListener('mousemove',e=>{mouse=[(e.clientX/innerWidth-.5)*2,(e.clientY/innerHeight-.5)*2];if(drag){dragOff[0]+=(e.clientX-drag[0])*.004;dragOff[1]+=(e.clientY-drag[1])*.004;drag=[e.clientX,e.clientY];dragged=true}});
   let dragged=false;wrap.addEventListener('mousedown',e=>{if(e.target.closest('.panel,.card,.photo,button,a'))return;drag=[e.clientX,e.clientY];dragged=false});addEventListener('mouseup',()=>{drag=null});
   requestAnimationFrame(frame);
-  return{startShot,wasDragged:()=>dragged,clearDrag:()=>{dragged=false},camera,A,T,now:()=>t};
+  return{startShot,release,wasDragged:()=>dragged,clearDrag:()=>{dragged=false},camera,A,T,now:()=>t};
 }
 try{if(hasGL){E=Engine();}}catch(err){console.error(err);document.getElementById('nogl').style.display='block';}
 setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?15000:0);
 
 /* ---------- navigation ---------- */
-function textOff(){if(!stage.classList.contains('textoff')){stage.classList.add('textoff');return true}return false}
+function textOff(){if(E)E.release();if(!stage.classList.contains('textoff')){stage.classList.add('textoff');return true}return false}
 function advance(){if(playing){go(cur+1);return}if(!textOff())go(cur+1)}
 function go(n){n=Math.max(0,Math.min(slides.length-1,n));stage.classList.remove('textoff');slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
   prog.style.width=((cur+1)/slides.length*100)+'%';count.textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
@@ -841,9 +842,10 @@ function go(n){n=Math.max(0,Math.min(slides.length-1,n));stage.classList.remove(
   try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
   if(E)E.startShot(cur);if(playing)arm();}
 function replay(){stage.classList.remove('textoff');slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);if(playing)arm();}
-function arm(){clearTimeout(timer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt)}
+let holdTimer=null;
+function arm(){clearTimeout(timer);clearTimeout(holdTimer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;if(slides[cur].dataset.hold)holdTimer=setTimeout(()=>textOff(),6000);timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt)}
 function start(){playing=true;playBtn.classList.add('on');playBtn.querySelector('.lbl').textContent='Pause';playBtn.setAttribute('aria-label','Pause');document.getElementById('playico').innerHTML='<path d="M2 1h2v8H2zM6 1h2v8H6z"/>';if(!caps){caps=true;capBtn.classList.add('on');capBtn.setAttribute('aria-pressed','true');cap.classList.toggle('show',!!slides[cur].dataset.cap)}arm()}
-function stop(){playing=false;clearTimeout(timer);playBtn.classList.remove('on');playBtn.querySelector('.lbl').textContent='Play';playBtn.setAttribute('aria-label','Play');document.getElementById('playico').innerHTML='<path d="M2 1l7 4-7 4z"/>'}
+function stop(){playing=false;clearTimeout(timer);clearTimeout(holdTimer);playBtn.classList.remove('on');playBtn.querySelector('.lbl').textContent='Play';playBtn.setAttribute('aria-label','Play');document.getElementById('playico').innerHTML='<path d="M2 1l7 4-7 4z"/>'}
 playBtn.addEventListener('click',()=>playing?stop():start());
 capBtn.addEventListener('click',()=>{caps=!caps;capBtn.classList.toggle('on',caps);capBtn.setAttribute('aria-pressed',String(caps));cap.classList.toggle('show',caps&&!!slides[cur].dataset.cap)});
 document.getElementById('prev').addEventListener('click',()=>go(cur-1));document.getElementById('next').addEventListener('click',()=>advance());document.getElementById('replay').addEventListener('click',replay);
