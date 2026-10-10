@@ -255,17 +255,17 @@ p strong{color:var(--fg);font-weight:600}
 </section>
 
 <!-- 10 PHASE II -->
-<section class="slide" data-t="52" data-cap="Phase two, air assault and seizure. Serials land LZ Vulture, LZ Falcon and LZ Owl. Element two seizes the FARP site. Element one occupies OBJ Husky, Poodle and Bernese to interdict the avenues of approach. Element three secures the site and pathfinders establish PZ Cedar and the rapid refuel point inside the triangle. FARP seized no later than H plus one.">
+<section class="slide" data-t="56" data-hold="1" data-cap="Phase two, air assault and seizure. Serials land LZ Vulture, LZ Falcon and LZ Owl. Element two seizes the FARP site. Element one occupies OBJ Husky, Poodle and Bernese to interdict the avenues of approach. Element three secures the site and pathfinders establish PZ Cedar and the rapid refuel point inside the triangle. FARP seized no later than H plus one.">
   <div class="right" style="width:500px">
     <div class="a hd"><div class="eyebrow">Phase II <span class="ph">air assault and seizure</span></div><h2>Land. Seize the objectives. <em>Establish the PZ.</em></h2></div>
     <div class="panel a" style="--d:.4s"><p class="small">Key tasks: GTF air assault (Lift 1), FARP seizure, pathfinder operations. Night air assault, dismounted land navigation, seize.</p>
       <ol class="list" style="margin-top:14px;font-size:16px">
-        <li class="a" style="--d:3s"><div><b>H-hour. Wheels down.</b> CH-47 on LZ Vulture inbound 158°. CH-47 on LZ Owl inbound 063°. UH-60 on LZ Falcon inbound 155°.</div></li>
-        <li class="a" style="--d:16s"><div><b>Seize the site.</b> Element 2 moves from LZ Vulture and seizes the FARP site. Element 1 moves to OBJ Husky, oriented north.</div></li>
-        <li class="a" style="--d:20s"><div><b>Interdict east.</b> Element 1 occupies OBJ Poodle from LZ Falcon and OBJ Bernese from LZ Owl, both oriented east along the road, interdicting the avenues of approach.</div></li>
-        <li class="a" style="--d:36s"><div><b>Establish the PZ.</b> Element 3 secures the site. Pathfinders mark PZ Cedar and the R3P inside the triangle formed by the objectives. FARP secured NLT H+1:00.</div></li>
+        <li class="a" style="--d:.5s"><div><b>H-hour. Wheels down.</b> CH-47 on LZ Vulture inbound 158°. CH-47 on LZ Owl inbound 063°. UH-60 on LZ Falcon inbound 155°.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Seize the site.</b> Element 2 moves from LZ Vulture and seizes the FARP site. Element 1 moves to OBJ Husky, oriented north.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Interdict east.</b> Element 1 occupies OBJ Poodle from LZ Falcon and OBJ Bernese from LZ Owl, both oriented east along the road, interdicting the avenues of approach.</div></li>
+        <li class="a" style="--d:.5s"><div><b>Establish the PZ.</b> Element 3 secures the site. Pathfinders mark PZ Cedar and the R3P inside the triangle formed by the objectives. FARP secured NLT H+1:00.</div></li>
       </ol></div>
-    <p class="a small" style="--d:44s;padding:0 6px;font-size:14px">Chalk-to-LZ assignments shown are the Storm Surge AMB plan (3 aircraft). The CONOP Lift 1 package is 2x CH47 / 2x UH60. Control measures are drawn over the unit's overhead imagery.</p>
+    <p class="a small" style="--d:.5s;padding:0 6px;font-size:14px">Chalk-to-LZ assignments shown are the Storm Surge AMB plan (3 aircraft). The CONOP Lift 1 package is 2x CH47 / 2x UH60. Control measures are drawn over the unit's overhead imagery.</p>
   </div>
   <div class="foot"><span>Alternate: LZ Dove · PZ Birch</span><span>10</span></div>
 </section>
@@ -728,7 +728,7 @@ function Engine(){
     extra:t=>{const seq=[['VULTURE',2],['OWL',5],['FALCON',8],['CEDAR',11]];obj.scan.visible=t>1.5;let p=O.VULTURE;for(const q of seq){if(t>=q[1])p=O[q[0]]}obj.scan.position.set(p[0],obj.scan.position.y,p[1]);obj.scan.material.color.set(t>=11?0x22d35a:0x6f94ff);const pulse=1+.08*Math.sin(t*4);obj.scan.scale.set(pulse,pulse,1);obj.cedarFill.material.opacity=t>11?.35+.1*Math.sin(t*3):0;}};
   // Phase II: CH-47 -> Vulture 158, CH-47 -> Owl 063, UH-60 -> Falcon 155
   const vA=back(O.VULTURE,158,520),oA=back(O.OWL,63,520),fA=back(O.FALCON,155,520);
-  shots[9]={world:'obj',cam:camKF([{t:0,v:V(vA[0]-300,500,vA[1]-400,O.VULTURE[0],0,O.VULTURE[1])},{t:3,v:chase(A.ch[0],-110,40,70)},{t:12,v:chase(A.ch[0],-110,40,70)},{t:17,v:V(O.TANG[0]-200,700,O.TANG[1]+600,O.TANG[0],0,O.TANG[1]-100)},{t:30,v:V(O.TANG[0]+100,800,O.TANG[1]+650,O.TANG[0],0,O.TANG[1]-50)},{t:40,v:V(O.CEDAR[0]-150,450,O.CEDAR[1]+520,O.CEDAR[0],0,O.CEDAR[1])},{t:50,v:V(O.CEDAR[0]+50,520,O.CEDAR[1]+560,O.TANG[0],0,O.TANG[1]-80)}]),
+  shots[9]={world:'obj',hold:true,cam:camKF([{t:0,v:V(vA[0]-300,500,vA[1]-400,O.VULTURE[0],0,O.VULTURE[1])},{t:3,v:chase(A.ch[0],-110,40,70)},{t:12,v:chase(A.ch[0],-110,40,70)},{t:17,v:V(O.TANG[0]-200,700,O.TANG[1]+600,O.TANG[0],0,O.TANG[1]-100)},{t:30,v:V(O.TANG[0]+100,800,O.TANG[1]+650,O.TANG[0],0,O.TANG[1]-50)},{t:40,v:V(O.CEDAR[0]-150,450,O.CEDAR[1]+520,O.CEDAR[0],0,O.CEDAR[1])},{t:50,v:V(O.CEDAR[0]+50,520,O.CEDAR[1]+560,O.TANG[0],0,O.TANG[1]-80)}]),
     anims:[flight(A.ch[0],[vA,back(O.VULTURE,158,120),O.VULTURE],1,11,{takeoff:false,alt:70}),
       flight(A.uh[0],[fA,back(O.FALCON,155,110),O.FALCON],2.2,11,{takeoff:false,alt:65}),
       flight(A.ch[1],[oA,back(O.OWL,63,120),O.OWL],3,11,{takeoff:false,alt:70}),
