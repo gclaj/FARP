@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <meta charset="utf-8">
 <title>J-FARP Seizure</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -588,10 +589,10 @@ function Engine(){
   const SOLDIER_H=13;
   function team(n,color){const g=new THREE.Group();g.members=[];g.color=color;const blob=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x2a4ff0,transparent:true,depthWrite:false,opacity:.22}));blob.scale.set(110,110,1);blob.material.opacity=.3;g.add(blob);g.blob=blob;
     const tint=new THREE.Color(color);const mat=new THREE.MeshStandardMaterial({color:tint,roughness:.85,metalness:0,emissive:new THREE.Color(0x102382),emissiveIntensity:.18});
-    for(let i=0;i<n;i++){const holder=new THREE.Group();holder.off=[(Math.random()-.5)*34,(Math.random()-.5)*34,Math.random()*6.28];holder.renderOrder=15;g.add(holder);g.members.push(holder);
+    const FORM=[[24,0,0],[-20,-30,2.1],[-20,30,4.2]];for(let i=0;i<n;i++){const holder=new THREE.Group();holder.off=FORM[i%FORM.length];holder.renderOrder=15;g.add(holder);g.members.push(holder);
       const attach=()=>{const m=new THREE.Mesh(SOLDIER.geo,mat);const sc=SOLDIER_H/1.8;m.scale.setScalar(sc);m.castShadow=true;holder.add(m)};if(SOLDIER.geo)attach();else SOLDIER.waiting.push(attach)}
     g.visible=false;scene.add(g);return g}
-  const T={seize:team(16,0x071354),iso6:team(14,0x071354),iso7:team(8,0x071354),sec:team(8,0x071354),fuel:team(4,0x071354),pf:team(4,0x071354)};
+  const T={seize:team(3,0x071354),iso6:team(3,0x071354),iso7:team(3,0x071354),sec:team(3,0x071354),fuel:team(3,0x071354),pf:team(3,0x071354)};
   const teams=Object.values(T);
   /* ===== hoses and refuel points at the R3P ===== */
   const hoses=new THREE.Group();obj.add(hoses);hoses.visible=false;
@@ -632,7 +633,7 @@ function Engine(){
   function walk(tm,from,to,t0,dur,o){o=o||{};return function(t){const u=clamp((t-t0)/dur,0,1);if(t<t0&&!o.pre){tm.visible=false;return}tm.visible=true;const e=ease(u);const x=lerp(from[0],to[0],e),z=lerp(from[1],to[1],e);
     tm.blob.position.set(x,gY(x,z)+4,z);tm.blob.material.opacity=0;
     const moving=u>0&&u<1;const yaw=Math.atan2(-(to[1]-from[1]),(to[0]-from[0]));const fade=o.fade?1-ease((t-o.fade)/2):1;tm.visible=fade>0.02;
-    tm.members.forEach((h,i)=>{const spread=1-.5*(moving?1:0);const ox=h.off[0]*spread,oz=h.off[1]*spread;h.position.set(x+ox,gY(x+ox,z+oz)+(moving?Math.abs(Math.sin(t*6+h.off[2]))*.25:0),z+oz);h.rotation.y=(from[0]===to[0]&&from[1]===to[1])?h.off[2]:yaw+Math.PI/2+(moving?0:Math.sin(h.off[2])*.6);h.scale.setScalar(fade*(worldMode==='wide'?5:(shot&&shot.troopScale||1)));});tm.blob.scale.setScalar(110*(worldMode==='wide'?5:1))}}
+    const k=worldMode==='wide'?5:(shot&&shot.troopScale||1);const ddx=to[0]-from[0],ddz=to[1]-from[1],dl=Math.hypot(ddx,ddz)||1;const dx=dl>1?ddx/dl:1,dz=dl>1?ddz/dl:0;tm.members.forEach((h,i)=>{const ox=(h.off[0]*dx-h.off[1]*dz)*k,oz=(h.off[0]*dz+h.off[1]*dx)*k;h.position.set(x+ox,gY(x+ox,z+oz)+(moving?Math.abs(Math.sin(t*6+h.off[2]))*.25:0),z+oz);h.rotation.y=(from[0]===to[0]&&from[1]===to[1])?h.off[2]:yaw+Math.PI/2+(moving?0:Math.sin(h.off[2])*.6);h.scale.setScalar(fade*k);});tm.blob.scale.setScalar(110*(worldMode==='wide'?5:1))}}
   function camKF(kfs){return function(t){let i=0;while(i<kfs.length-1&&t>=kfs[i+1].t)i++;const a=kfs[i],b=kfs[Math.min(i+1,kfs.length-1)];const u=a===b?1:ease((t-a.t)/(b.t-a.t));const A=typeof a.v==='function'?a.v(t):a.v,B=typeof b.v==='function'?b.v(t):b.v;
     return{pos:[lerp(A.pos[0],B.pos[0],u),lerp(A.pos[1],B.pos[1],u),lerp(A.pos[2],B.pos[2],u)],look:[lerp(A.look[0],B.look[0],u),lerp(A.look[1],B.look[1],u),lerp(A.look[2],B.look[2],u)]}}}
   const V=(px,py,pz,lx,ly,lz)=>({pos:[px,py,pz],look:[lx,ly,lz]});
