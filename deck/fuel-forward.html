@@ -116,6 +116,8 @@ p strong{color:var(--fg);font-weight:600}
 #mclock .mt b{color:var(--amber2)}
 #mclock .mp{margin-top:7px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
 #mclock.on{display:block}
+.timed .lift{position:absolute;left:0;right:0;bottom:0;opacity:0;transform:translateY(14px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}.timed .lift.show:not(.dismissed){opacity:1;transform:none}
+#stage.textoff .slide>.right.timed{filter:none;pointer-events:none}
 /* cinematic mode: letterbox and grain while text is off */
 #lbt,#lbb{position:absolute;left:0;right:0;height:0;background:#000;z-index:4;pointer-events:none;transition:height .9s cubic-bezier(.2,.7,.2,1)}#lbt{top:0}#lbb{bottom:0}
 body.cine #lbt,body.cine #lbb{height:7%}
@@ -182,10 +184,10 @@ body.cine:not(.nograin) #grain{opacity:.075}
 <!-- 5 CONCEPT -->
 <section class="slide" data-t="36.8" data-cap="Concept of the operation. Three lifts. Lift one, the Ground Task Force, air assaults to seize the J-FARP site. Lift two, the FARP Task Force, delivers the WETCOW with fuel and the FATCOW with AH-64 munitions and establishes the FARP. Lift three, the deep attack, refuels and rearms at the J-FARP and continues to the Division target.">
   <div class="a af hd" style="--hold:12s"><div class="eyebrow">Concept of the operation <span class="ph">three lifts</span></div><h2 style="max-width:30ch">Seize the site. Establish the FARP. <em>Turn the deep attack.</em></h2><p class="a small" style="--d:.3s;margin-top:12px;max-width:66ch"><strong>Mission.</strong> On order, an Infantry Company (-) conducts Air Assault Operations to seize a J-FARP to enable Combat Aviation Assets to mass combat power in the Division Deep Area to defeat enemy forces and seize key terrain.</p></div>
-  <div class="right" style="top:auto;bottom:84px;width:470px">
-    <div class="card a af" style="--hold:9s;--d:1s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 1 – Ground Task Force</span><p style="margin-top:8px">2x CH47 · 2x UH60 · C2 (NOMAD) · 82 PAX. GTF air assault. FARP seizure. Pathfinder operations.</p></div><img class="cut" src="assets/uh60.png" alt="UH-60 Black Hawk"></div>
-    <div class="card a af hi" style="--hold:8s;--d:14s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag amber">Lift 2 – FARP Task Force</span><p style="margin-top:8px">2x CH47 · FATCOW · WETCOW · 18 PAX (ECHO / 6-101 FARP crew). FARP TF air assault. FARP establishment.</p></div></div>
-    <div class="card a af" style="--hold:8s;--d:24s;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 3 – Deep Attack</span><p style="margin-top:8px">2x AH64. Deep attack air assault. Refuel and rearm at the J-FARP, continue to the DIV deep TGT (100–150 NM).</p></div><img class="cut" src="assets/ah64.png" alt="AH-64 Apache"></div>
+  <div class="right timed" style="top:auto;bottom:84px;width:470px">
+    <div class="card lift" data-from="0.6" data-to="13" style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 1 – Ground Task Force</span><p style="margin-top:8px">2x CH47 · 2x UH60 · C2 (NOMAD) · 82 PAX. GTF air assault. FARP seizure. Pathfinder operations.</p></div><img class="cut" src="assets/uh60.png" alt="UH-60 Black Hawk"></div>
+    <div class="card lift hi" data-from="14" data-to="25" style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag amber">Lift 2 – FARP Task Force</span><p style="margin-top:8px">2x CH47 · FATCOW · WETCOW · 18 PAX (ECHO / 6-101 FARP crew). FARP TF air assault. FARP establishment.</p></div></div>
+    <div class="card lift" data-from="26" data-to="46" style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center"><div><span class="tag">Lift 3 – Deep Attack</span><p style="margin-top:8px">2x AH64. Deep attack air assault. Refuel and rearm at the J-FARP, continue to the DIV deep TGT (100–150 NM).</p></div><img class="cut" src="assets/ah64.png" alt="AH-64 Apache"></div>
   </div>
   <div class="foot"><span>Source: Concept of the Operation – J-FARP Seizure (CONOP as briefed)</span><span>05</span></div>
 </section>
@@ -693,7 +695,7 @@ function Engine(){
       ...A.ah.map((a,k)=>flight(a,[isbPark(k+2),[I[0]+560,I[1]-150],[F[0]+10,F[1]+150+k*60]],22+k*.5,9,{parked:true,alt:200,spinAfter:999})),
       ...A.ah.map((a,k)=>{const f=flight(a,[[F[0]+10,F[1]+150+k*60],[F[0]+600,F[1]-100+k*60],[C[0]-150,C[1]+120+k*60]],34+k*.5,11,{alt:220,land:false});return t=>{if(t>=34+k*.5)f(t)}}),
       walk(T.seize,[F[0]-10,F[1]-40],[F[0]-20,F[1]-240],16,8,{solo:true}),walk(T.iso7,[F[0]+40,F[1]-10],[F[0]+250,F[1]-30],16.5,8,{solo:true}),walk(T.iso6,[F[0]+10,F[1]+40],[F[0]+30,F[1]+240],17,8,{solo:true}),walk(T.sec,[F[0]-40,F[1]+10],[F[0]-250,F[1]+30],17.5,8,{solo:true})],
-    extra:t=>{const f=1-clamp((t-16)/5,0,1);A.ch.concat(A.uh).forEach(a=>{a.fade=f});strikeFX(t)}};
+    extra:t=>{const f=1-clamp((t-16)/5,0,1);A.ch.concat(A.uh).forEach(a=>{a.fade=f});strikeFX(t);document.querySelectorAll('.slide.active .lift').forEach(c=>c.classList.toggle('show',t>=+c.dataset.from&&t<+c.dataset.to))}};
   shots[5]={world:'obj',cam:camKF([{t:0,v:V(-400,1500,1300,0,0,0)},{t:22,v:V(300,1300,1100,0,0,-100)}]),anims:[]};
   shots[6]={world:'obj',cam:camKF([{t:0,v:V(0,1900,300,0,0,0)},{t:22,v:V(100,1700,250,0,0,-50)}]),anims:[]};
   shots[7]={world:'obj',noLabels:true,cam:camKF([{t:0,v:V(-1200,900,900,-100,0,0)},{t:24,v:V(-900,1000,1200,0,0,0)}]),anims:[]};
@@ -806,14 +808,14 @@ try{if(hasGL){E=Engine();}}catch(err){console.error(err);document.getElementById
 setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?15000:0);
 
 /* ---------- navigation ---------- */
-function textOff(){if(E)E.release();if(!stage.classList.contains('textoff')){stage.classList.add('textoff');document.body.classList.add('cine');return true}return false}
+function textOff(){if(E)E.release();if(!stage.classList.contains('textoff')){stage.classList.add('textoff');document.body.classList.add('cine');document.querySelectorAll('.lift.show').forEach(c=>c.classList.add('dismissed'));return true}return false}
 function advance(){if(playing){go(cur+1);return}if(!textOff())go(cur+1)}
-function go(n){n=Math.max(0,Math.min(slides.length-1,n));stage.classList.remove('textoff');document.body.classList.remove('cine');slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
+function go(n){n=Math.max(0,Math.min(slides.length-1,n));stage.classList.remove('textoff');document.body.classList.remove('cine');document.querySelectorAll('.lift').forEach(c=>c.classList.remove('dismissed','show'));slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
   prog.style.width=((cur+1)/slides.length*100)+'%';count.textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
   [...dots.children].forEach((d,k)=>d.classList.toggle('cur',k===cur));cap.textContent=s.dataset.cap||'';cap.classList.toggle('show',caps&&!!s.dataset.cap);
   try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
   if(E)E.startShot(cur);if(playing)arm();}
-function replay(){stage.classList.remove('textoff');document.body.classList.remove('cine');slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);if(playing)arm();}
+function replay(){stage.classList.remove('textoff');document.body.classList.remove('cine');document.querySelectorAll('.lift').forEach(c=>c.classList.remove('dismissed','show'));slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);if(playing)arm();}
 let holdTimer=null;
 function arm(){clearTimeout(timer);clearTimeout(holdTimer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;if(slides[cur].dataset.hold)holdTimer=setTimeout(()=>textOff(),6000);timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt)}
 function start(){playing=true;playBtn.classList.add('on');playBtn.querySelector('.lbl').textContent='Pause';playBtn.setAttribute('aria-label','Pause');document.getElementById('playico').innerHTML='<path d="M2 1h2v8H2zM6 1h2v8H6z"/>';if(!caps){caps=true;capBtn.classList.add('on');capBtn.setAttribute('aria-pressed','true');cap.classList.toggle('show',!!slides[cur].dataset.cap)}arm()}
