@@ -806,17 +806,17 @@ try{if(hasGL){E=Engine();}}catch(err){console.error(err);document.getElementById
 setTimeout(()=>document.getElementById('load').classList.add('off'),hasGL?15000:0);
 
 /* ---------- navigation ---------- */
-/* click model: step 0 = slide arrives, scene held; click 1 = animation runs; click 2 = text appears; click 3 = next slide */
+/* click model: a slide arrives with its animation already running; next click shows the text; the click after that moves to the next slide */
 function setStep(n){stage.dataset.step=n;stage.classList.toggle('text',n>=2);document.body.classList.toggle('cine',n<2);if(n>=1&&E)E.release()}
 function advance(){if(playing){go(cur+1);return}const st=+stage.dataset.step||0;if(st<2)setStep(st+1);else go(cur+1)}
 function go(n){n=Math.max(0,Math.min(slides.length-1,n));document.querySelectorAll('.lift').forEach(c=>c.classList.remove('show'));slides[cur].classList.remove('active');cur=n;const s=slides[cur];s.classList.add('active');
   prog.style.width=((cur+1)/slides.length*100)+'%';count.textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
   [...dots.children].forEach((d,k)=>d.classList.toggle('cur',k===cur));cap.textContent=s.dataset.cap||'';cap.classList.toggle('show',caps&&!!s.dataset.cap);
   try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
-  if(E)E.startShot(cur);setStep(0);if(playing)arm();}
-function replay(){document.querySelectorAll('.lift').forEach(c=>c.classList.remove('show'));slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);setStep(0);if(playing)arm();}
+  if(E)E.startShot(cur);setStep(1);if(playing)arm();}
+function replay(){document.querySelectorAll('.lift').forEach(c=>c.classList.remove('show'));slides[cur].classList.remove('active');void slides[cur].offsetWidth;slides[cur].classList.add('active');if(E)E.startShot(cur);setStep(1);if(playing)arm();}
 let holdTimer=null,textTimer=null;
-function arm(){clearTimeout(timer);clearTimeout(holdTimer);clearTimeout(textTimer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;holdTimer=setTimeout(()=>setStep(1),800);textTimer=setTimeout(()=>setStep(2),tt*.55);timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt+3000)}
+function arm(){clearTimeout(timer);clearTimeout(holdTimer);clearTimeout(textTimer);const tt=(parseFloat(slides[cur].dataset.t)||16)*1000;textTimer=setTimeout(()=>setStep(2),tt*.55);timer=setTimeout(()=>{if(cur<slides.length-1)go(cur+1);else stop()},tt+3000)}
 function start(){playing=true;playBtn.classList.add('on');playBtn.querySelector('.lbl').textContent='Pause';playBtn.setAttribute('aria-label','Pause');document.getElementById('playico').innerHTML='<path d="M2 1h2v8H2zM6 1h2v8H6z"/>';if(!caps){caps=true;capBtn.classList.add('on');capBtn.setAttribute('aria-pressed','true');cap.classList.toggle('show',!!slides[cur].dataset.cap)}arm()}
 function stop(){playing=false;clearTimeout(timer);clearTimeout(holdTimer);clearTimeout(textTimer);playBtn.classList.remove('on');playBtn.querySelector('.lbl').textContent='Play';playBtn.setAttribute('aria-label','Play');document.getElementById('playico').innerHTML='<path d="M2 1l7 4-7 4z"/>'}
 playBtn.addEventListener('click',()=>playing?stop():start());
