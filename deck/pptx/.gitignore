@@ -2,6 +2,10 @@ node_modules/
 package*.json
 slide-*.jpg
 ex-*.jpg
+hq-*.jpg
 qa_*.jpg
 exqa_*.jpg
+hqqa_*.jpg
 *.pdf
+*_check.jpg
+J-FARP_Seizure_HQ.pptx
