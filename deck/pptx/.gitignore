@@ -1,5 +1,7 @@
 node_modules/
 package*.json
 slide-*.jpg
+ex-*.jpg
 qa_*.jpg
+exqa_*.jpg
 *.pdf
